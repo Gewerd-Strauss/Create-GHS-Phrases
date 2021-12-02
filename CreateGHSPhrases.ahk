@@ -53,16 +53,6 @@ if FileExist(sPathLibraryFile:=A_ScriptDir "\INI-Files\" A_ScriptNameNoExt ".ini
     DataArr:=fReadIni(script.configfile) ; load the data of the
 Else
     gosub, lWriteLibraryFromHardCode
-; if (2<1)
-; {   ;; Old experiment to fetch the h and p phrases from URL, but I decided against it in order to 
-; 	UrlDownloadToFile, https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm,Test.ini ; read the european comission state of the H&P phrases. Need to figure out how the _FUCK_ I can parse this shitshow.
-; 	LineNums:=0
-; 	str:=A_ScriptDir "\Test.ini"
-; 	loop, read,%str%
-; 		LineNums++
-; }
-
-;OfficialPhrasesEU:=FileOpen(A_ScriptDir\Test.ini)
 OnMessage(0x404, "f_TrayIconSingleClickCallBack")
 return
 
@@ -242,6 +232,7 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 				ErrorsFound.push(vNumErr)
 				ErrorString.= "`n"  v " Specific phrase missing: " w
 				bIndentPhrase:=true
+				bPhaseWasIndented:=true
 				strCompoundAssembled.= ": " w 
 			vNumErr++
 			}
@@ -249,7 +240,7 @@ f_ProcessErrors(ErrorArr,DataArr,str)
         }
     if !(bHasVal1 || bHasVal2 || bHasVal3 || bHasVal4 || bHasVal5) and SubStr(v,1,1)!="#"
 	{
-       ErrorString:=StrReplace(ErrorString.= "`n"  v , "Error 01:", "Error 02:") ;,"^(?!.*Specific phrase missing.*).+$")
+    ;    ErrorString:=StrReplace(ErrorString.= "`n"  v , "Error 01:", "Error 02:") ;,"^(?!.*Specific phrase missing.*).+$")
 
 	}
 	ErrorString:=RegExReplace(ErrorString,"^(?!.*Specific phrase missing.*).+$")
@@ -271,7 +262,7 @@ Error 01: Key 'H221+H2122+H2232' could not be found on file. Please search and i
 -----------------
 )
     }
-	if bIndentPhrase ; aka we have errors
+	if bIndentPhrase  || bPhaseWasIndented ; aka we have errors
 		return str A_Tab strCompoundAssembled
 	else
     	return str strCompoundAssembled
@@ -382,260 +373,8 @@ f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
 		MsgBox, % str
 		return
 	}
-DL_TF_ReplaceInLines(Text, StartLine = 1, EndLine = 0, SearchText = "", ReplaceText = "")
-	{
-	 DL_TF_GetData(OW, Text, FileName)
-	 IfNotInString, Text, %SearchText%
-		Return Text ; SearchText not in TextFile so return and do nothing, we have to return Text in case of a variable otherwise it would empty the variable contents bug fix 3.3
-	 TF_MatchList:=DL__MakeMatchList(Text, StartLine, EndLine, 0, A_ThisFunc) ; create MatchList
-	 Loop, Parse, Text, `n, `r
-		{
-		 If A_Index in %TF_MatchList%
-			{
-			 StringReplace, LoopField, A_LoopField, %SearchText%, %ReplaceText%, All
-			 OutPut .= LoopField "`n"
-			}
-		 Else
-			OutPut .= A_LoopField "`n"
-		}
-	 Return DL_TF_ReturnOutPut(OW, OutPut, FileName)
-	}
-
-	DL_TF_GetData(byref OW, byref Text, byref FileName)
-	{
-	 If (text = 0 "") ; v3.6 -> v3.7 https://github.com/hi5/TF/issues/4 and https://autohotkey.com/boards/viewtopic.php?p=142166#p142166 in case user passes on zero/zeros ("0000") as text - will error out when passing on one 0 and there is no file with that name
-		{
-		 IfNotExist, %Text% ; additional check to see if a file 0 exists
-			{
-			 MsgBox, 48, TF Lib Error, % "Read Error - possible reasons (see documentation):`n- Perhaps you used !""file.txt"" vs ""!file.txt""`n- A single zero (0) was passed on to a TF function as text"
-			 ExitApp
-			}
-		}
-	 OW=0 ; default setting: asume it is a file and create file_copy
-	 IfNotInString, Text, `n ; it can be a file as the Text doesn't contact a newline character
-		{
-		 If (SubStr(Text,1,1)="!") ; first we check for "overwrite"
-			{
-			 Text:=SubStr(Text,2)
-			 OW=1 ; overwrite file (if it is a file)
-			}
-		 IfNotExist, %Text% ; now we can check if the file exists, it doesn't so it is a var
-			{
-			 If (OW=1) ; the variable started with a ! so we need to put it back because it is variable/text not a file
-				Text:= "!" . Text
-			 OW=2 ; no file, so it is a var or Text passed on directly to TF
-			}
-		}
-	 Else ; there is a newline character in Text so it has to be a variable
-		{
-		 OW=2
-		}
-	 If (OW = 0) or (OW = 1) ; it is a file, so we have to read into var Text
-		{
-		 Text := (SubStr(Text,1,1)="!") ? (SubStr(Text,2)) : Text
-		 FileName=%Text% ; Store FileName
-		 FileRead, Text, %Text% ; Read file and return as var Text
-		 If (ErrorLevel > 0)
-			{
-			 MsgBox, 48, TF Lib Error, % "Can not read " FileName
-			 ExitApp
-			}
-		}
-	 Return
-	}
 
 
-	; DL__MakeMatchList()
-	; Purpose:
-	; Make a MatchList which is used in various functions
-	; Using a MatchList gives greater flexibility so you can process multiple
-	; sections of lines in one go avoiding repetitive fileread/append actions
-	; For TF 3.4 added COL = 0/1 option (for TF_Col* functions) and CallFunc for
-	; all TF_* functions to facilitate bug tracking
-	DL__MakeMatchList(Text, Start = 1, End = 0, Col = 0, CallFunc = "Not available")
-		{
-		ErrorList=
-		(join|
-	Error 01: Invalid StartLine parameter (non numerical character)`nFunction used: %CallFunc%
-	Error 02: Invalid EndLine parameter (non numerical character)`nFunction used: %CallFunc%
-	Error 03: Invalid StartLine parameter (only one + allowed)`nFunction used: %CallFunc%
-		)
-		StringSplit, ErrorMessage, ErrorList, |
-		Error = 0
-
-		If (Col = 1)
-			{
-			LongestLine:=TF_Stat(Text)
-			If (End > LongestLine) or (End = 1) ; FIXITHERE BUG
-				End:=LongestLine
-			}
-
-		TF_MatchList= ; just to be sure
-		If (Start = 0 or Start = "")
-			Start = 1
-
-		; some basic error checking
-
-		; error: only digits - and + allowed
-		If (RegExReplace(Start, "[ 0-9+\-\,]", "") <> "")
-			Error = 1
-
-		If (RegExReplace(End, "[0-9 ]", "") <> "")
-			Error = 2
-
-		; error: only one + allowed
-		If (TF_Count(Start,"+") > 1)
-			Error = 3
-
-		If (Error > 0 )
-			{
-			MsgBox, 48, TF Lib Error, % ErrorMessage%Error%
-			ExitApp
-			}
-
-		; Option #0 [ added 30-Oct-2010 ]
-		; Startline has negative value so process X last lines of file
-		; endline parameter ignored
-
-		If (Start < 0) ; remove last X lines from file, endline parameter ignored
-			{
-			Start:=TF_CountLines(Text) + Start + 1
-			End=0 ; now continue
-			}
-
-		; Option #1
-		; StartLine has + character indicating startline + incremental processing.
-		; EndLine will be used
-		; Make TF_MatchList
-
-		IfInString, Start, `+
-			{
-			If (End = 0 or End = "") ; determine number of lines
-				End:= TF_Count(Text, "`n") + 1
-			StringSplit, Section, Start, `, ; we need to create a new "TF_MatchList" so we split by ,
-			Loop, %Section0%
-				{
-				StringSplit, SectionLines, Section%A_Index%, `+
-				LoopSection:=End + 1 - SectionLines1
-				Counter=0
-					TF_MatchList .= SectionLines1 ","
-				Loop, %LoopSection%
-					{
-					If (A_Index >= End) ;
-						Break
-					If (Counter = (SectionLines2-1)) ; counter is smaller than the incremental value so skip
-						{
-						TF_MatchList .= (SectionLines1 + A_Index) ","
-						Counter=0
-						}
-					Else
-						Counter++
-					}
-				}
-			StringTrimRight, TF_MatchList, TF_MatchList, 1 ; remove trailing ,
-			Return TF_MatchList
-			}
-
-		; Option #2
-		; StartLine has - character indicating from-to, COULD be multiple sections.
-		; EndLine will be ignored
-		; Make TF_MatchList
-
-		IfInString, Start, `-
-			{
-			StringSplit, Section, Start, `, ; we need to create a new "TF_MatchList" so we split by ,
-			Loop, %Section0%
-				{
-				StringSplit, SectionLines, Section%A_Index%, `-
-				LoopSection:=SectionLines2 + 1 - SectionLines1
-				Loop, %LoopSection%
-					{
-					TF_MatchList .= (SectionLines1 - 1 + A_Index) ","
-					}
-				}
-			StringTrimRight, TF_MatchList, TF_MatchList, 1 ; remove trailing ,
-			Return TF_MatchList
-			}
-
-		; Option #3
-		; StartLine has comma indicating multiple lines.
-		; EndLine will be ignored
-
-		IfInString, Start, `,
-			{
-			TF_MatchList:=Start
-			Return TF_MatchList
-			}
-
-		; Option #4
-		; parameters passed on as StartLine, EndLine.
-		; Make TF_MatchList from StartLine to EndLine
-
-		If (End = 0 or End = "") ; determine number of lines
-				End:= TF_Count(Text, "`n") + 1
-		LoopTimes:=End-Start
-		Loop, %LoopTimes%
-			{
-			TF_MatchList .= (Start - 1 + A_Index) ","
-			}
-		TF_MatchList .= End ","
-		StringTrimRight, TF_MatchList, TF_MatchList, 1 ; remove trailing ,
-		Return TF_MatchList
-		}
-
-
-	; Write to file or return variable depending on input
-	DL_TF_ReturnOutPut(OW, Text, FileName, TrimTrailing = 1, CreateNewFile = 0) 
-	{
-		If (OW = 0) ; input was file, file_copy will be created, if it already exist file_copy will be overwritten
-			{
-			IfNotExist, % FileName ; check if file Exist, if not return otherwise it would create an empty file. Thanks for the idea Murp|e
-			{
-				If (CreateNewFile = 1) ; CreateNewFile used for TF_SplitFileBy* and others
-				{
-					OW = 1
-					Goto lCreateNewFile
-				}
-				Else
-					Return
-			}
-			If (TrimTrailing = 1)
-				StringTrimRight, Text, Text, 1 ; remove trailing `n
-			SplitPath, FileName,, Dir, Ext, Name
-			If (Dir = "") ; if Dir is empty Text & script are in same directory
-				Dir := A_WorkingDir
-			IfExist, % Dir "\backup" ; if there is a backup dir, copy original file there
-				FileCopy, % Dir "\" Name "_copy." Ext, % Dir "\backup\" Name "_copy.bak", 1
-			FileDelete, % Dir "\" Name "_copy." Ext
-			FileAppend, %Text%, % Dir "\" Name "_copy." Ext
-			Return Errorlevel ? False : True
-			}
-		lCreateNewFile:
-		If (OW = 1) ; input was file, will be overwritten by output
-		{
-			IfNotExist, % FileName ; check if file Exist, if not return otherwise it would create an empty file. Thanks for the idea Murp|e
-			{
-				If (CreateNewFile = 0) ; CreateNewFile used for TF_SplitFileBy* and others
-					Return
-			}
-			If (TrimTrailing = 1)
-				StringTrimRight, Text, Text, 1 ; remove trailing `n
-			SplitPath, FileName,, Dir, Ext, Name
-			If (Dir = "") ; if Dir is empty Text & script are in same directory
-				Dir := A_WorkingDir
-			IfExist, % Dir "\backup" ; if there is a backup dir, copy original file there
-				FileCopy, % Dir "\" Name "." Ext, % Dir "\backup\" Name ".bak", 1
-			FileDelete, % Dir "\" Name "." Ext
-			FileAppend, %Text%, % Dir "\" Name "." Ext
-			Return Errorlevel ? False : True
-		}
-		If (OW = 2) ; input was var, return variable
-		{
-			If (TrimTrailing = 1)
-				StringTrimRight, Text, Text, 1 ; remove trailing `n
-			Return Text
-		}
-	}
 ;}_____________________________________________________________________________________
 ;{#[Include Section]
 
