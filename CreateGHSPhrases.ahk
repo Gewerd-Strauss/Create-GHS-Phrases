@@ -19,14 +19,14 @@ global script := {   base         : script
                     ,author       : "Gewerd Strauss"
 					,authorlink   : "https://github.com/Gewerd-Strauss"
                     ,email        : ""
-                    ,credits      : ""
-					,creditslink  : ""
+                    ,credits      : "berban,RaptorX,Lexikos,jNizM"
+					,creditslink  : "https://github.com/Gewerd-Strauss/Create-GHS-Phrases#code-by-others"
                     ,crtdate      : "02.12.2021"
-                    ,moddate      : ""
+                    ,moddate      : "02.12.2021 21:43:24"
                     ,homepagetext : ""
                     ,homepagelink : ""
-                    ,ghtext 	  : ""
-                    ,ghlink       : ""
+                    ,ghtext 	  : "Github Repository"
+                    ,ghlink       : "https://github.com/Gewerd-Strauss/Create-GHS-Phrases"
                     ,doctext	  : ""
                     ,doclink	  : ""
                     ,forumtext	  : ""
@@ -36,11 +36,6 @@ global script := {   base         : script
                     ,configfolder : A_ScriptDir "\INI-Files"}
                     ; ,resfolder    : A_ScriptDir "\res"
                     ; ,iconfile     : A_ScriptDir "\res\sct.ico"
-SplitPath, A_ScriptName,,,, A_ScriptNameNoExt
-ScriptName=InesrtHandP.ahk 
-VN=1.0.1.1                                                                    
-LE=16.11.2021 21:36:47                                                       
-AU=Gewerd Strauss
 ;}______________________________________________________________________________________
 ;{#[File Overview]
 Menu, Tray, Icon, C:\WINDOWS\system32\imageres.dll,101 ;Set custom Script icon
@@ -48,8 +43,7 @@ Menu, Tray, Icon, C:\WINDOWS\system32\imageres.dll,101 ;Set custom Script icon
 ;}______________________________________________________________________________________
 ;{#[Autorun Section]
 f_CreateTrayMenu(VN)
-
-if FileExist(sPathLibraryFile:=A_ScriptDir "\INI-Files\" A_ScriptNameNoExt ".ini")
+if FileExist(script.configfile)
     DataArr:=fReadIni(script.configfile) ; load the data of the
 Else
     gosub, lWriteLibraryFromHardCode
@@ -73,44 +67,44 @@ for k, v in Sel
 	v:=StrReplace(v,":","") ; remove ":" from string if existing
 	v=%v%
     {
-        stype:=substr(v,1,1)
-        if DataArr["P-Phrases"].HasKey(v) && !Instr(v,"+") ;(stype="P")
+        stype:=SubStr(v,1,1)
+        if DataArr["P-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="P")
         {
             bHasVal1:=true
             str.=v ": " DataArr["P-Phrases"][v] 
         }
         Else
             bHasVal1:=false
-        if DataArr["H-Phrases"].HasKey(v) && !Instr(v,"+") ;(stype="H")
+        if DataArr["H-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="H")
         {
             bHasVal2:=true
             str.=v ": " DataArr["H-Phrases"][v] 
         }
         Else
             bHasVal2:=false
-        if DataArr["Physical properties"].HasKey(v) && !Instr(v,"+") 
+        if DataArr["Physical properties"].HasKey(v) && !InStr(v,"+") 
         {
             bHasVal3:=true
             str.=v ": " DataArr["Physical properties"][v] 
         }
         Else
             bHasVal3:=false
-        if DataArr["Environmental properties"].HasKey(v) && !Instr(v,"+") 
+        if DataArr["Environmental properties"].HasKey(v) && !InStr(v,"+") 
         {
             bHasVal4:=true
             str.=v ": " DataArr["Environmental properties"][v]
         }
         else
             bHasVal4:=false
-        if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(v) && !Instr(v,"+") 
+        if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(v) && !InStr(v,"+") 
         {
             bHasVal5:=true
             str.=v ": " DataArr["Supplemental label elements/information on certain substances and mixtures"][v]
         }
         else
             bHasVal5:=false
-        if (!bHasVal1) and (!bHasVal2) and (!bHasVal3) and (!bHasVal4) and (!bHasVal5) ;|| Instr(v,"")
-            if (v!="") and !Instr(v,"#")
+        if (!bHasVal1) and (!bHasVal2) and (!bHasVal3) and (!bHasVal4) and (!bHasVal5) ;|| InStr(v,"")
+            if (v!="") and !InStr(v,"#")
 			{
                 ErrorArr[v]:= "Error " vNumErr ": Key '" v "' could not be found on file. Please search and insert manually."
 			}
@@ -134,7 +128,7 @@ RemoveToolTip:
 Tooltip,
 return
 Label_AboutFile:
-MsgBox,, File Overview, Name: %ScriptName%`nAuthor: %AU%`nVersionNumber: %VN%`nLast Edit: %LE%`n`nScript Location: %A_ScriptDir%
+script.about()
 return
 ;}______________________________________________________________________________________
 ;{#[Functions Section]
@@ -172,9 +166,6 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 			return str strCompoundAssembled.=": " DataArr["Supplemental label elements/information on certain substances and mixtures"][k]
 			
 		}
-
-
-
 
 		; 2nd-level compound creation
         strCompoundAssembled:=k 
@@ -238,29 +229,12 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 			}
                 strCompoundAssembled.=" "
         }
-    if !(bHasVal1 || bHasVal2 || bHasVal3 || bHasVal4 || bHasVal5) and SubStr(v,1,1)!="#"
-	{
-    ;    ErrorString:=StrReplace(ErrorString.= "`n"  v , "Error 01:", "Error 02:") ;,"^(?!.*Specific phrase missing.*).+$")
+    ; if !(bHasVal1 || bHasVal2 || bHasVal3 || bHasVal4 || bHasVal5) and SubStr(v,1,1)!="#"
+	; {
+    ; ;    ErrorString:=StrReplace(ErrorString.= "`n"  v , "Error 01:", "Error 02:") ;,"^(?!.*Specific phrase missing.*).+$")
 
-	}
-	ErrorString:=RegExReplace(ErrorString,"^(?!.*Specific phrase missing.*).+$")
-	
-
-d= ; problem: H221 is identified and printed, but it is also found in the string, so it was clearly found.
-; need to figure out how to fix that. Also, the final error log might not be necessary anymore because we are already giving distinct messages. 
-; Need a means of tabulating in the lines of text that have errors to make them easier to find for others.
-(
-H221+H2122+H2232: Flammable gas.   
-
-
-ERROR LOG (REMOVE AFTERWARDS)
------------------
-Error 01: Key 'H221+H2122+H2232' could not be found on file. Please search and insert manually.Specific phrase missing: H221
-Error 01: Key 'H221+H2122+H2232' could not be found on file. Please search and insert manually.Specific phrase missing: H2122
-Error 01: Key 'H221+H2122+H2232' could not be found on file. Please search and insert manually.Specific phrase missing: H2232
-Error 01: Key 'H221+H2122+H2232' could not be found on file. Please search and insert manually.
------------------
-)
+	; }
+		ErrorString:=RegExReplace(ErrorString,"^(?!.*Specific phrase missing.*).+$")
     }
 	if bIndentPhrase  || bPhaseWasIndented ; aka we have errors
 		return str A_Tab strCompoundAssembled
@@ -275,8 +249,8 @@ f_CreateTrayMenu(IniObj)
     menu, Misc, Add, Reload, lReload
     menu, Misc, Add, About, Label_AboutFile
 	menu, Misc, Add, How to use it, lExplainHowTo
-    SplitPath, A_ScriptName,,,, ScriptName
-    f_AddStartupToggleToTrayMenu(ScriptName,"Misc")
+    SplitPath, A_ScriptName,,,, scriptname
+    f_AddStartupToggleToTrayMenu(script.name,"Misc")
     Menu, tray, add, Miscellaneous, :Misc
     menu, tray, add,
     return
@@ -287,18 +261,19 @@ return
 lReload: 
 reload
 return
+
 f_TrayIconSingleClickCallBack(wParam, lParam)
-	{ ; taken and adapted from https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954
-		VNI:=1.0.3.12
-		; 0x201 WM_LBUTTONDOWN
-		; 0x202 WM_LBUTTONUP
-		if (lParam = 0x202) || (lParam = 0x201)
-		{
-			menu, tray, show
-			return 0
-		}
+{ ; taken and adapted from https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954
+	VNI:=1.0.3.12
+	; 0x201 WM_LBUTTONDOWN
+	; 0x202 WM_LBUTTONUP
+	if (lParam = 0x202) || (lParam = 0x201)
+	{
+		menu, tray, show
+		return 0
 	}
-f_AddStartupToggleToTrayMenu(ScriptName,MenuNameToInsertAt:="Tray")
+}
+f_AddStartupToggleToTrayMenu(scriptname,MenuNameToInsertAt:="Tray")
 { ; add a toggle to create a link in startup folder for this script to the respective menu
     VNI=1.0.0.1
     global startUpDir 
@@ -634,13 +609,13 @@ EUH210=Safety data sheet available on request.
 EUH401=To avoid risks to human health and the environment, comply with the instructions for use.
 )
 ; m("figure out how to write a continuation section to file successfully")
-f_ThrowError("Main Code Body","Library-file containing the H&P-phrases does not exist, initiating from default settings. ", A_ScriptNameNoExt . "_"0, Exception("",-1).Line)
-if !Instr(FileExist(A_ScriptDir "\INI-Files"),"D") ; check if folder structure exists
+f_ThrowError("Main Code Body","Library-file containing the H&P-phrases does not exist, initiating from default settings. ", script.name . "_"0, Exception("",-1).Line)
+if !InStr(FileExist(A_ScriptDir "\INI-Files"),"D") ; check if folder structure exists
 	FileCreateDir, % A_ScriptDir "\INI-Files"
 
 ; sPathLibraryFile
-UrlDownloadToFile, https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt,%sPathLibraryFile%
 sPathLibraryFile:=script.configfile
+UrlDownloadToFile, https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt,%sPathLibraryFile%
 FileReadLine, bDownloadFailed,%sPathLibraryFile%,1
 if (bDownloadFailed="404: Not Found")
 {
