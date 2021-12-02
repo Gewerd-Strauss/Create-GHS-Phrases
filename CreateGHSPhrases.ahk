@@ -39,7 +39,6 @@ global script := {   base         : script
 ;}______________________________________________________________________________________
 ;{#[File Overview]
 Menu, Tray, Icon, C:\WINDOWS\system32\imageres.dll,101 ;Set custom Script icon
-;menu, Tray, Add, About, Label_AboutFile
 ;}______________________________________________________________________________________
 ;{#[Autorun Section]
 f_CreateTrayMenu(VN)
@@ -55,7 +54,6 @@ return
 ;{#[Hotkeys Section]
 !0::
 Sel:=strsplit(fClip(),"`n")
-
 global vNumErr:=1
 str:=""
 global ErrorString:=""
@@ -620,6 +618,7 @@ FileReadLine, bDownloadFailed,%sPathLibraryFile%,1
 if (bDownloadFailed="404: Not Found")
 {
 	FileDelete, %sPathLibraryFile%
+
 	FileAppend, %LibraryBackup%, %sPathLibraryFile%
 }
 gosub, lExplainHowTo
@@ -634,6 +633,7 @@ m("The Error-Log gives an overview if phrases cannot be found in the file, and n
 m("I obviously do not guarantee the validity of the phrases which come with this file, because they might change and are probably dependent on where you life.")
 m("To edit phrases, open the library file and edit the respective phrase","`nYou can also add phrases, by following the style in the file. Make sure you don't edit the [Headers], such as [P-Phrases].")
 return
+
 
 
 
