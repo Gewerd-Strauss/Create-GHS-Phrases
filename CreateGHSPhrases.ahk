@@ -383,7 +383,6 @@ f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
 ;}_____________________________________________________________________________________
 
 lWriteLibraryFromHardCode:
-
 LibraryBackup=
 (
 [H-Phrases]
@@ -648,22 +647,10 @@ if (bDownloadFailed="404: Not Found")
 	FileDelete, %sPathLibraryFile%
 	FileAppend, %LibraryBackup%, %sPathLibraryFile%
 }
-
-
-; UrlDownloadToFile, https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt,%sPathLibraryFile%
-; FileReadLine, bDownloadFailed,%sPathLibraryFile%,1
-; if (bDownloadFailed="404: Not Found")
-; {
-; 	FileDelete, %sPathLibraryFile%
-; 	FileAppend, %LibraryBackup%, %sPathLibraryFile%
-; }
-; DataArr:=fReadIni(sPathLibraryFile) ; load the data of the
-
-
 gosub, lExplainHowTo
 DataArr:=fReadIni(script.configfile) ; load the data of the
-
 return
+
 lExplainHowTo:
 m("Missing Definitions of Phrases. Creating Library-File in """ A_ScriptDir """ for future uses.","Phrases taken from ""https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm""`n","fetched on 15.11.2021")
 m("In order to use this, write the H-and P-phrases below each other:","`nH317`nH319`nH361`n","Alternatively, combinations of phrases must be written like this:","P305+P351+P338")
@@ -671,8 +658,6 @@ m("After finishing collecting all phrases of a chemical, highlight/select each s
 m("The Error-Log gives an overview if phrases cannot be found in the file, and need to be added to that file first.")
 m("I obviously do not guarantee the validity of the phrases which come with this file, because they might change and are probably dependent on where you life.")
 m("To edit phrases, open the library file and edit the respective phrase","`nYou can also add phrases, by following the style in the file. Make sure you don't edit the [Headers], such as [P-Phrases].")
-
-
 return
 
 
