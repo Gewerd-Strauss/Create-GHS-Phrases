@@ -35,6 +35,6 @@ ERROR LOG (REMOVE AFTERWARDS)
 -----------------
 ```
 
-The error-log gives information on phrases whose Key (that is the `H317`, for instance could not be found in the library file). See [Errors](#-errors)
+The error-log gives information on phrases whose Key (that is the `H317`, for instance could not be found in the library file). See [Errors](#errors)
 
 # Errors
