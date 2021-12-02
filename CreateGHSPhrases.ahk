@@ -15,7 +15,7 @@ SetTitleMatchMode, 2
 #Include <scriptObj>
 global script := {   base         : script
                     ,name         : regexreplace(A_ScriptName, "\.\w+")
-                    ,version      : "1.0.1"
+                    ,version      : "1.3.1"
                     ,author       : "Gewerd Strauss"
 					,authorlink   : "https://github.com/Gewerd-Strauss"
                     ,email        : ""
