@@ -76,6 +76,7 @@ On the one hand, the error log will display all errors found in the file, and po
 
 --- 
 
+# Requirements
 Requires the GHS phrases in specific format, dowloaded from the necessary gist [here](https://gist.github.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef).
 The phrases were retrieved from https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm on 02.12.2021. I do not take responsibility for keeping the gist up-to-date. Neither does the script check for changes. The file can be redownloaded by deleting the ini-file located at `A_ScriptDir\INI-Files\CreateGHSPhrases.ini`, where A_ScriptDir is the location of the Script/Executable.
 
