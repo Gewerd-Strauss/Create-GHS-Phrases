@@ -108,6 +108,6 @@ The library-file stored at the address mentioned above, as well as the version c
 * scriptObj.ahk, original by [RaptorX](https://github.com/RaptorX/ScriptObj), used version slightly modified by [me](https://github.com/Gewerd-Strauss/ScriptObj).
 * f_TrayIconSingleClickCallBack, adopted from [Lexikos](https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954)
 * HasVal, original from [jNizM](https://www.autohotkey.com/boards/viewtopic.php?p=109173&sid=e530e129dcf21e26636fec1865e3ee30#p109173)
-* 
-
+* wolf_II's [ReadINI-function](https://www.autohotkey.com/boards/viewtopic.php?p=256940#p256940)
+* fIsConnected, retrieved from lxiko's "[AHKRare](https://github.com/Ixiko/AHK-Rare)", a collection of useful snippet functions. 
 
