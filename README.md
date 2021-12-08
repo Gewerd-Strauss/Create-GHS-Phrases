@@ -77,6 +77,7 @@ On the one hand, the error log will display all errors found in the file, and po
 
 --- 
 
+# Requirements
 Requires the GHS phrases in specific format, dowloaded from the necessary gist [here](https://gist.github.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef).
 The phrases were retrieved from https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm on 02.12.2021. I do not take responsibility for keeping the gist up-to-date. Neither does the script check for changes. The file can be redownloaded by deleting the ini-file located at `A_ScriptDir\INI-Files\CreateGHSPhrases.ini`, where A_ScriptDir is the location of the Script/Executable.
 
@@ -104,7 +105,7 @@ The library-file stored at the address mentioned above, as well as the version c
 # Code by others
 
 * fClip.ahk, original by [berban](https://github.com/berban/Clip), used version by [me](https://github.com/Gewerd-Strauss/fClip.ahk).
-* scriptObj.ahk, original by [RaptorX](https://github.com/RaptorX/ScriptObj), used version by [me](https://github.com/Gewerd-Strauss/ScriptObj).
+* scriptObj.ahk, original by [RaptorX](https://github.com/RaptorX/ScriptObj), used version slightly modified by [me](https://github.com/Gewerd-Strauss/ScriptObj).
 * f_TrayIconSingleClickCallBack, adopted from [Lexikos](https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954)
 * HasVal, original from [jNizM](https://www.autohotkey.com/boards/viewtopic.php?p=109173&sid=e530e129dcf21e26636fec1865e3ee30#p109173)
 * 
