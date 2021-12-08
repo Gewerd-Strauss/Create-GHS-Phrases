@@ -81,6 +81,9 @@ The phrases were retrieved from https://ec.europa.eu/taxation_customs/dds2/SAMAN
 
 Also requires the scriptObj-File. Original by [RaptorX](https://github.com/RaptorX/ScriptObj), modified version used in this project by [myself](https://github.com/Gewerd-Strauss/ScriptObj). Should be located at the default library location for autohotkey, that being `%A_MyDocuments%\AutoHotkey\Lib\`. For more info, see the documentation on [#include](https://www.autohotkey.com/docs/commands/_Include.htm)
 
+# A small note about languages and regions of validity.
+
+The library-file stored at the address mentioned above, as well as the version contained in the code for the case the hosted gist isn't available only contain the english GHS phrases for the EU. I do not claim them to be complete, or valid for other regions. For the EU, I could not find a more comprehensive collection elsewhere at the time of writing this. If you live elsewhere, please check if the phrases apply in the same way to your location. If you want a translated version, replace the phrases in the settings-file (basically everything behind the "="-sign) with your equivalent. Note that if the file is restored, you'll have to redo it again.
 # Code by others
 
 * fClip.ahk, original by [berban](https://github.com/berban/Clip), used version by [me](https://github.com/Gewerd-Strauss/fClip.ahk).
@@ -88,3 +91,5 @@ Also requires the scriptObj-File. Original by [RaptorX](https://github.com/Rapto
 * f_TrayIconSingleClickCallBack, adopted from [Lexikos](https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954)
 * HasVal, original from [jNizM](https://www.autohotkey.com/boards/viewtopic.php?p=109173&sid=e530e129dcf21e26636fec1865e3ee30#p109173)
 * 
+
+

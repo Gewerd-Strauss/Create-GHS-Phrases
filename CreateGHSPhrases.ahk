@@ -8,44 +8,55 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;SetKeyDelay -1
 SetBatchLines -1
 SetTitleMatchMode, 2
+Menu, Tray, Icon, C:\WINDOWS\system32\shell32.dll,78 ;Set custom Script icon
 ;ntfy:=Notify()
 ;;_____________________________________________________________________________________
 ;{#[General Information for file management]
 
 #Include <scriptObj>
+FileGetTime, ModDate,%A_ScriptFullPath%,M
+FileGetTime, CrtDate,%A_ScriptFullPath%,C
+CrtDate:=SubStr(CrtDate,7,  2) "." SubStr(CrtDate,5,2) "." SubStr(CrtDate,1,4)
+ModDate:=SubStr(ModDate,7,  2) "." SubStr(ModDate,5,2) "." SubStr(ModDate,1,4)
 global script := {   base         : script
                     ,name         : regexreplace(A_ScriptName, "\.\w+")
-                    ,version      : "1.3.1"
+                    ,version      : "2.7.1"
                     ,author       : "Gewerd Strauss"
 					,authorlink   : "https://github.com/Gewerd-Strauss"
                     ,email        : ""
                     ,credits      : "berban,RaptorX,Lexikos,jNizM"
 					,creditslink  : "https://github.com/Gewerd-Strauss/Create-GHS-Phrases#code-by-others"
-                    ,crtdate      : "02.12.2021"
-                    ,moddate      : "02.12.2021 21:43:24"
-                    ,homepagetext : ""
-                    ,homepagelink : ""
+                    ,crtdate      : CrtDate
+                    ,moddate      : ModDate
+                    ,homepagetext : "Report a bug"
+                    ,homepagelink : "https://github.com/Gewerd-Strauss/Create-GHS-Phrases/issues"
                     ,ghtext 	  : "Github Repository"
                     ,ghlink       : "https://github.com/Gewerd-Strauss/Create-GHS-Phrases"
-                    ,doctext	  : ""
-                    ,doclink	  : ""
-                    ,forumtext	  : ""
+                    ,doctext	  : "Documentation"
+                    ,doclink	  : "https://github.com/Gewerd-Strauss/Create-GHS-Phrases#create-ghs-phrases"
+                    ,forumtext	  : "Forum"
                     ,forumlink	  : ""
-                    ,donateLink   : ""
-                    ,configfile   : A_ScriptDir "\INI-Files\" regexreplace(A_ScriptName, "\.\w+") ".ini"
-                    ,configfolder : A_ScriptDir "\INI-Files"}
+                    ,donateLink   : ""  
+                    ,configfolder : A_ScriptDir "\INI-Files"
+                    ,configfile   : A_ScriptDir "\INI-Files\" regexreplace(A_ScriptName, "\.\w+") ".ini"}
                     ; ,resfolder    : A_ScriptDir "\res"
                     ; ,iconfile     : A_ScriptDir "\res\sct.ico"
 ;}______________________________________________________________________________________
 ;{#[File Overview]
-Menu, Tray, Icon, C:\WINDOWS\system32\imageres.dll,101 ;Set custom Script icon
 ;}______________________________________________________________________________________
 ;{#[Autorun Section]
+bDownloadToFile:=!bDownloadToVariable:=0
 f_CreateTrayMenu(VN)
-if FileExist(script.configfile)
-    DataArr:=fReadIni(script.configfile) ; load the data of the
-Else
-    gosub, lWriteLibraryFromHardCode
+if bDownloadToFile
+{
+    if FileExist(script.configfile) ; check if library exists. Additionally, 
+        DataArr:=fReadIni(script.configfile) ; load the data of the
+    Else
+        gosub, lWriteLibraryFromHardCode
+
+}
+else 
+
 OnMessage(0x404, "f_TrayIconSingleClickCallBack")
 return
 
@@ -53,7 +64,7 @@ return
 ;}______________________________________________________________________________________
 ;{#[Hotkeys Section]
 !0::
-Sel:=strsplit(fClip(),"`n")
+Sel:=StrSplit(fClip(),"`n")
 global vNumErr:=1
 str:=""
 global ErrorString:=""
@@ -112,7 +123,7 @@ for k, v in Sel
 }
 Clipboard:=str
 ; m(ErrorString)
-newStr:=str "`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------" ErrorString "`n-----------------"
+newStr:=str "`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------------------" ErrorString "`n-----------------------------"
 fClip(newStr)
 return
 
@@ -167,7 +178,7 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 
 		; 2nd-level compound creation
         strCompoundAssembled:=k 
-        CompoundStatementArr:=strsplit(k,"+")
+        CompoundStatementArr:=StrSplit(k,"+")
 		bWasFoundArr:=[]
 		ErrorsFound:=[]
         for s,w in CompoundStatementArr
@@ -244,6 +255,7 @@ f_CreateTrayMenu(IniObj)
 { ; facilitates creation of the tray menu
     menu, tray, add,
     Menu, Misc, add, Open Script-folder, lOpenScriptFolder
+    Menu, Misc, add, Search for GHS changes , lUpdateLibrary
     menu, Misc, Add, Reload, lReload
     menu, Misc, Add, About, Label_AboutFile
 	menu, Misc, Add, How to use it, lExplainHowTo
@@ -259,7 +271,10 @@ return
 lReload: 
 reload
 return
-
+lUpdateLibrary:
+FileDelete, % script.configfile
+reload
+return
 f_TrayIconSingleClickCallBack(wParam, lParam)
 { ; taken and adapted from https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954
 	VNI:=1.0.3.12
@@ -356,6 +371,8 @@ f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
 ;}_____________________________________________________________________________________
 
 lWriteLibraryFromHardCode:
+{
+
 LibraryBackup=
 (
 [H-Phrases]
@@ -606,23 +623,29 @@ EUH209A=Can become highly flammable in use.
 EUH210=Safety data sheet available on request.
 EUH401=To avoid risks to human health and the environment, comply with the instructions for use.
 )
+}
 ; m("figure out how to write a continuation section to file successfully")
 f_ThrowError("Main Code Body","Library-file containing the H&P-phrases does not exist, initiating from default settings. ", script.name . "_"0, Exception("",-1).Line)
-if !InStr(FileExist(A_ScriptDir "\INI-Files"),"D") ; check if folder structure exists
-	FileCreateDir, % A_ScriptDir "\INI-Files"
-
+if !InStr(FileExist(script.configfolder),"D") ; check if folder structure exists
+    FileCreateDir, % script.configfolder 
+	;FileCreateDir, % A_ScriptDir "\INI-Files"
+    ; 'd:=script.configfolder:= script.configfolder . "HI\"
 ; sPathLibraryFile
-sPathLibraryFile:=script.configfile
-UrlDownloadToFile, https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt,%sPathLibraryFile%
-FileReadLine, bDownloadFailed,%sPathLibraryFile%,1
-if (bDownloadFailed="404: Not Found")
+if fIsConnected()   ; load from gist.
 {
-	FileDelete, %sPathLibraryFile%
-
-	FileAppend, %LibraryBackup%, %sPathLibraryFile%
+    UrlDownloadToFile, https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt ,% script.configfile
+    FileReadLine, bDownloadStatus,% script.configfile, % 1
+    if (bDownloadStatus="404: Not Found")
+    {
+        FileDelete, % script.configfile ; URL faulty and cannot retrieve correct text. Fallback on hard-coded version
+        FileAppend, % LibraryBackup, % script.configfile
+    }    
 }
+else                ; load from hard coded var
+    FileAppend, % LibraryBackup, % script.configfile
+DataArr:=fReadIni(script.configfile) ; load the data to use.
+; sPathLibraryFile:=script.configfile
 gosub, lExplainHowTo
-DataArr:=fReadIni(script.configfile) ; load the data of the
 return
 
 lExplainHowTo:
@@ -634,7 +657,73 @@ m("I obviously do not guarantee the validity of the phrases which come with this
 m("To edit phrases, open the library file and edit the respective phrase","`nYou can also add phrases, by following the style in the file. Make sure you don't edit the [Headers], such as [P-Phrases].")
 return
 
+fReadINI(INI_File,bIsVar=0) ; return 2D-array from INI-file
+	{
+		Result := []
+		if !bIsVar ; load a simple file
+		{
+            SplitPath, INI_File,, WorkDir
+			OrigWorkDir:=A_WorkingDir
+			SetWorkingDir, % WorkDir
+			IniRead, SectionNames, %INI_File%
+			for each, Section in StrSplit(SectionNames, "`n") {
+				IniRead, OutputVar_Section, %INI_File%, %Section%
+				for each, Haystack in StrSplit(OutputVar_Section, "`n")
+					RegExMatch(Haystack, "(.*?)=(.*)", $)
+				, Result[Section, $1] := $2
+			}
+			if A_WorkingDir!=OrigWorkDir
+				SetWorkingDir, %OrigWorkDir%
+		}
+		else ; convert string
+		{
+            Lines:=StrSplit(bIsVar,"`n")
+            ; Arr:=[]
+            bIsInSection:=false
+            for k,v in lines
+            {
+
+                If SubStr(v,1,1)="[" && SubStr(v,StrLen(v),1)="]"
+                {
+                    SectionHeader:=SubStr(v,2)
+                    SectionHeader:=SubStr(SectionHeader,1,StrLen(SectionHeader)-1)
+                    bIsInSection:=true
+                    currentSection:=SectionHeader
+                }
+                if bIsInSection
+                {
+                    RegExMatch(v, "(.*?)=(.*)", $)
+                    if ($2!="")
+                        Result[currentSection,$1] := $2
+                }
+            }
+        }
+		return Result
+		/* Original File from https://www.autohotkey.com/boards/viewtopic.php?p=256714#p256714
+		;-------------------------------------------------------------------------------
+			ReadINI(INI_File) { ; return 2D-array from INI-file
+		;-------------------------------------------------------------------------------
+				Result := []
+				IniRead, SectionNames, %INI_File%
+				for each, Section in StrSplit(SectionNames, "`n") {
+					IniRead, OutputVar_Section, %INI_File%, %Section%
+					for each, Haystack in StrSplit(OutputVar_Section, "`n")
+						RegExMatch(Haystack, "(.*?)=(.*)", $)
+				, Result[Section, $1] := $2
+				}
+				return Result
+		*/
+	}
+RemoveLastLine(ByRef Var, EOL := "") {
+   If (EOL = "")
+      EOL := InStr(Var, "`r`n") ? "`r`n" : InStr(Var, "`n") ? "`n" : InStr(Var, "`r") ? "`r" : ""
+   If (EOL) && (P := InStr(Var, EOL, 0, 0))
+      Var := SubStr(Var, 1, P - 1)
+   Else
+      Var := ""
+}
 
 
-
-
+fIsConnected(URL="https://google.com") {                            	;-- Returns true if there is an available internet connection
+	return DllCall("Wininet.dll\InternetCheckConnection", "Str", URL,"UInt", 1, "UInt",0, "UInt")
+} ;</10.01.000020>
