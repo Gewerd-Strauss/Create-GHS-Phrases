@@ -38,6 +38,7 @@ ERROR LOG (REMOVE AFTERWARDS)
 The error-log gives information on phrases whose Key (that is the `H317`, for instance could not be found in the library file). See [Errors](#errors)
 
 # Errors
+
 Using the following input 
 ```
 Stannous Octaoate
@@ -81,9 +82,25 @@ The phrases were retrieved from https://ec.europa.eu/taxation_customs/dds2/SAMAN
 
 Also requires the scriptObj-File. Original by [RaptorX](https://github.com/RaptorX/ScriptObj), modified version used in this project by [myself](https://github.com/Gewerd-Strauss/ScriptObj). Should be located at the default library location for autohotkey, that being `%A_MyDocuments%\AutoHotkey\Lib\`. For more info, see the documentation on [#include](https://www.autohotkey.com/docs/commands/_Include.htm)
 
+
+# Executing the program.
+
+Be mindful to keep the folderstructure of the script and the settings-file.
+
+## If you have Autohotkey installed
+
+Just launch the script file the same way you launch any other. Then use the hotkey outlined at the beginning.
+
+## If you don't have Autohotkey installed
+
+Launch the executable. Then use the hotkey outlined at the beginning.
+
 # A small note about languages and regions of validity.
 
 The library-file stored at the address mentioned above, as well as the version contained in the code for the case the hosted gist isn't available only contain the english GHS phrases for the EU. I do not claim them to be complete, or valid for other regions. For the EU, I could not find a more comprehensive collection elsewhere at the time of writing this. If you live elsewhere, please check if the phrases apply in the same way to your location. If you want a translated version, replace the phrases in the settings-file (basically everything behind the "="-sign) with your equivalent. Note that if the file is restored, you'll have to redo it again.
+
+
+
 # Code by others
 
 * fClip.ahk, original by [berban](https://github.com/berban/Clip), used version by [me](https://github.com/Gewerd-Strauss/fClip.ahk).
