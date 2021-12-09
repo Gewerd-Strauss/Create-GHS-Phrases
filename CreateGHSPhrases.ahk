@@ -38,14 +38,50 @@ global script := {   base         : script
                     ,forumlink	  : ""
                     ,donateLink   : ""  
                     ,configfolder : A_ScriptDir "\INI-Files"
-                    ,configfile   : A_ScriptDir "\INI-Files\" regexreplace(A_ScriptName, "\.\w+") ".ini"}
+                    ,configfile   : A_ScriptDir "\INI-Files\" regexreplace(A_ScriptName, "\.\w+") ".ini"
+                    ,libraryurl   : "https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt"} ; please edit this link to select a different location to download the library from if so desired. This is done so users can easily set up and use the library for a different language. Please note that the section titles must remain the same, or more extensive code edits must be performed. If that is the case and problems arise, please open an issue on GitHub.
                     ; ,resfolder    : A_ScriptDir "\res"
                     ; ,iconfile     : A_ScriptDir "\res\sct.ico"
 ;}______________________________________________________________________________________
 ;{#[File Overview]
+
+/*
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+If you are editing this intending to use this program with phrases in a different 
+language, please note that:
+1. The section titles in the settings file must remain the same. That includes only:
+* H-Phrases
+* P-Phrases
+* Physical Properties
+* Environmental Properties
+* Supplemental label elements/information on certain substances and mixtures
+
+In principle, these sections are superfluous when it comes to _finding_ a 
+phrase. You could just as easily have only one section called "P-Phrases" and easily 
+push all phrases in there, regardless of wether or not they are actually P-Phrases. That
+is solely to make it easier for the user. 
+HOWEVER... it is not possible to create a new section and have it read as well - at 
+least not without some additions to the script.
+
+Therefore, when translating the phrases please do not change any section title, those 
+being "[H-Phrases]","[P-Phrases]" etc in the library file. You can change, remove or
+add any key-value line to any of these sections, by simply writing in the following 
+way into the library file:
+
+YourKeyHere=YourPhraseHere
+
+When using this script then, the phrase "YourKeyHere" will then be changed to
+"YourKeyHere=YourPhraseHere", the same way it is outlined in the documentation.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    
+*/
+
+
+
 ;}______________________________________________________________________________________
 ;{#[Autorun Section]
-bDownloadToFile:=!bDownloadToVariable:=0
+bDownloadToFile:=1 ;!bDownloadToVariable 
 f_CreateTrayMenu(VN)
 if bDownloadToFile
 {
@@ -53,7 +89,6 @@ if bDownloadToFile
         DataArr:=fReadIni(script.configfile) ; load the data of the
     Else
         gosub, lWriteLibraryFromHardCode
-
 }
 else 
 
@@ -64,11 +99,11 @@ return
 ;}______________________________________________________________________________________
 ;{#[Hotkeys Section]
 !0::
-Sel:=StrSplit(fClip(),"`n")
+aSel:=StrSplit(fClip(),"`n")
 global vNumErr:=1
 str:=""
 global ErrorString:=""
-for k, v in Sel
+for k, v in aSel
 {
     ErrorArr:=[]
     str.="`n"
@@ -121,8 +156,6 @@ for k, v in Sel
       
     str:=StrReplace(f_ProcessErrors(ErrorArr,DataArr,str)," : ",A_Space)
 }
-Clipboard:=str
-; m(ErrorString)
 newStr:=str "`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------------------" ErrorString "`n-----------------------------"
 fClip(newStr)
 return
@@ -234,15 +267,10 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 				bIndentPhrase:=true
 				bPhaseWasIndented:=true
 				strCompoundAssembled.= ": " w 
-			vNumErr++
+		    	vNumErr++
 			}
-                strCompoundAssembled.=" "
+            strCompoundAssembled.=" "
         }
-    ; if !(bHasVal1 || bHasVal2 || bHasVal3 || bHasVal4 || bHasVal5) and SubStr(v,1,1)!="#"
-	; {
-    ; ;    ErrorString:=StrReplace(ErrorString.= "`n"  v , "Error 01:", "Error 02:") ;,"^(?!.*Specific phrase missing.*).+$")
-
-	; }
 		ErrorString:=RegExReplace(ErrorString,"^(?!.*Specific phrase missing.*).+$")
     }
 	if bIndentPhrase  || bPhaseWasIndented ; aka we have errors
@@ -633,7 +661,7 @@ if !InStr(FileExist(script.configfolder),"D") ; check if folder structure exists
 ; sPathLibraryFile
 if fIsConnected()   ; load from gist.
 {
-    UrlDownloadToFile, https://gist.githubusercontent.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef/raw/f9d2b785ba8259b58b768d2f4b13a498890de26c/gistfile1.txt ,% script.configfile
+    UrlDownloadToFile, % script.libraryurl ,% script.configfile
     FileReadLine, bDownloadStatus,% script.configfile, % 1
     if (bDownloadStatus="404: Not Found")
     {
@@ -649,12 +677,13 @@ gosub, lExplainHowTo
 return
 
 lExplainHowTo:
-m("Missing Definitions of Phrases. Creating Library-File in """ A_ScriptDir """ for future uses.","Phrases taken from ""https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm""`n","fetched on 15.11.2021")
-m("In order to use this, write the H-and P-phrases below each other:","`nH317`nH319`nH361`n","Alternatively, combinations of phrases must be written like this:","P305+P351+P338")
-m("After finishing collecting all phrases of a chemical, highlight/select each set of phrases on their own.","Then, press Alt+0 (The number row-0, not the 0 of the NumBlock).","The corresponding phrases will then be inserted into the document.")
-m("The Error-Log gives an overview if phrases cannot be found in the file, and need to be added to that file first.")
-m("I obviously do not guarantee the validity of the phrases which come with this file, because they might change and are probably dependent on where you life.")
-m("To edit phrases, open the library file and edit the respective phrase","`nYou can also add phrases, by following the style in the file. Make sure you don't edit the [Headers], such as [P-Phrases].")
+run,% script.doclink
+; msgbox, % "Missing Definitions of Phrases. Creating Library-File in """ A_ScriptDir """ for future uses.Phrases taken from ""https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm""`n fetched on 15.11.2021"
+; msgbox, % "In order to use this, write the H-and P-phrases below each other: `nH317`nH319`nH361`n Alternatively, combinations of phrases must be written like this: P305+P351+P338"
+; msgbox, % "After finishing collecting all phrases of a chemical, highlight/select each set of phrases on their own. Then, press Alt+0 (The number row-0, not the 0 of the NumBlock). The corresponding phrases will then be inserted into the document."
+; msgbox, % "The Error-Log gives an overview if phrases cannot be found in the file, and need to be added to that file first."
+; msgbox, % "I obviously do not guarantee the validity of the phrases which come with this file, because they might change and are probably dependent on where you life."
+; msgbox, % "To edit phrases, open the library file and edit the respective phrase `nYou can also add phrases, by following the style in the file. Make sure you don't edit the [Headers], such as [P-Phrases]."
 return
 
 fReadINI(INI_File,bIsVar=0) ; return 2D-array from INI-file
@@ -714,16 +743,8 @@ fReadINI(INI_File,bIsVar=0) ; return 2D-array from INI-file
 				return Result
 		*/
 	}
-RemoveLastLine(ByRef Var, EOL := "") {
-   If (EOL = "")
-      EOL := InStr(Var, "`r`n") ? "`r`n" : InStr(Var, "`n") ? "`n" : InStr(Var, "`r") ? "`r" : ""
-   If (EOL) && (P := InStr(Var, EOL, 0, 0))
-      Var := SubStr(Var, 1, P - 1)
-   Else
-      Var := ""
-}
 
-
-fIsConnected(URL="https://google.com") {                            	;-- Returns true if there is an available internet connection
+fIsConnected(URL="https://google.com") 
+{ ; retrieved from lxiko's "AHKRare" https://github.com/Ixiko/AHK-Rare          ;-- Returns true if there is an available internet connection
 	return DllCall("Wininet.dll\InternetCheckConnection", "Str", URL,"UInt", 1, "UInt",0, "UInt")
 } ;</10.01.000020>
