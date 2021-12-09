@@ -74,7 +74,16 @@ On the one hand, the error log will display all errors found in the file, and po
 
 	P305+P3511+P338: IF IN EYES: P3511 Remove contact lenses, if present and easy to do. Continue rinsing. 
  
+# Known limitations and bugs
 
+1. The following two keys have slightly differemt wording:
+    
+```
+H360FD=May damage fertility. May damage the unborn child.
+H360Fd=May damage fertility. Suspected of damaging the unborn child.
+```
+However, because the programm cannot distinguish between lowercase and uppercase letters in the key, both keys result in `May damage fertility. Suspected of damaging the unborn child.`. As both phrases are extremely similar, I am currently not focussing to fix this. I have some approaches to do it, but no time as of right now.
+    
 --- 
 
 # Requirements
