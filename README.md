@@ -109,6 +109,31 @@ Launch the executable. Then use the hotkey outlined at the beginning.
 
 The library-file stored at the address mentioned above, as well as the version contained in the code for the case the hosted gist isn't available only contain the english GHS phrases for the EU. I do not claim them to be complete, or valid for other regions. For the EU, I could not find a more comprehensive collection elsewhere at the time of writing this. If you live elsewhere, please check if the phrases apply in the same way to your location. If you want a translated version, replace the phrases in the settings-file (basically everything behind the "="-sign) with your equivalent. Note that if the file is restored, you'll have to redo it again.
 
+If you are editing this intending to use this program with phrases in a different language, please note that the section titles in the settings file must remain the same. That includes only:
+
+* H-Phrases
+* P-Phrases
+* Physical Properties
+* Environmental Properties
+* Supplemental label elements/information on certain substances and mixtures
+
+In principle, these sections are superfluous when it comes to _finding_ a phrase. You could just as easily have only one section called "P-Phrases" and easily push all phrases in there, regardless of wether or not they are actually P-Phrases. That is solely to make it easier for the user. HOWEVER... it is not possible to create a new section and have it read as well - at least not without some additions to the script. 
+
+Therefore, when translating the phrases please do not change any section title, those being "[H-Phrases]","[P-Phrases]" etc in the library file. You can change, remove or add any key-value line to any of these sections, by simply writing in the following way into the library file: `YourKeyHere=YourPhraseHere`, e.g.
+
+When using this script then, the phrase "YourKeyHere" will then be changed to
+"YourKeyHere=YourPhraseHere", the same way it is outlined in the documentation.
+
+Example: `H229=Pressurised container: May burst if heated.` → `This Is a technically valid key...=...and this is a technically valid phrase.`
+
+In the above example, the result of executing `Alt+0` on the following line of selected text
+
+`This Is a technically valid key...`
+
+will result in the following line:
+
+`This Is a technically valid key......and this is a technically valid phrase.`
+
 
 
 # Code by others
