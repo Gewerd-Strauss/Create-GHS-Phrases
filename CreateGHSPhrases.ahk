@@ -12,83 +12,13 @@ Menu, Tray, Icon, C:\WINDOWS\system32\shell32.dll,78 ;Set custom Script icon
 ;ntfy:=Notify()
 ;;_____________________________________________________________________________________
 ;{#[General Information for file management]
-
-; #Include <scriptObj>
-; last edited by Gewerd Strauss @ 27.11.2021
-; from RaptorX https://github.com/RaptorX/ScriptObj/blob/master/ScriptObj.ahk
-/**
- * ============================================================================ *
- * @Author           : RaptorX <graptorx@gmail.com>
- * @Script Name      : Script Object
- * @Script Version   : 0.20.3
- * @Homepage         :
- *
- * @Creation Date    : November 09, 2020
- * @Modification Date: July 02, 2021
- * @Modification G.S.: November 27, 2021
- ; @Description Modification G.S.: added field for GitHub-link, a Forum-link 
- 								   and a credits-field, as well as a template 
-								   to quickly copy out into new scripts
- * 
- * @Description      :
- * -------------------
- * This is an object used to have a few common functions between scripts
- * Those are functions and variables related to basic script information,
- * upgrade and configuration.
- *
- * ============================================================================ *
- */
-; scriptName   (opt) - Name of the script which will be
-; 		                     shown as the title of the window and the main header
-; 		version      (opt) - Script Version in SimVer format, a "v"
-; 		                     will be added automatically to this value
-; 		author       (opt) - Name of the author of the script
-; 		credits 	 (opt) - Name of credited people
-; 		creditslink  (opt) - Link to credited file, if any
-; 		crtdate		 (opt) - Date of creation
-; 		moddate		 (opt) - Date of modification
-; 		homepagetext (opt) - Display text for the script website
-; 		homepagelink (opt) - Href link to that points to the scripts
-; 		                     website (for pretty links and utm campaing codes)
-; 		ghlink 		 (opt) - GitHubLink
-; 		ghtext 		 (opt) - GitHubtext
-; 		forumlink    (opt) - forumlink to the scripts forum page
-; 		forumtext    (opt) - forumtext 
-; 		donateLink   (opt) - Link to a donation site
-; 		email        (opt) - Developer email
-
-; Template
-; global script := {base         : script
-;                  ,name         : regexreplace(A_ScriptName, "\.\w+")
-;                  ,version      : "0.1.0"
-;                  ,author       : ""
-;                  ,email        : ""
-;                  ,credits      : ""
-;                  ,creditslink  : ""
-;                  ,crtdate      : ""
-;                  ,moddate      : ""
-;                  ,homepagetext : ""
-;                  ,homepagelink : ""
-;                  ,ghlink       : ""
-;                  ,ghtext 		 : ""
-;                  ,doclink      : ""
-;                  ,doctext		 : ""
-;                  ,forumlink    : ""
-;                  ,forumtext	 : ""
-;                  ,donateLink   : ""
-;                  ,resfolder    : A_ScriptDir "\res"
-;                  ,iconfile     : A_ScriptDir "\res\sct.ico"
-;                  ,configfile   : A_ScriptDir "\settings.ini"
-;                  ,configfolder : A_ScriptDir ""
-; 				   }
-
 class script
 {
 	static DBG_NONE     := 0
 	      ,DBG_ERRORS   := 1
 	      ,DBG_WARNINGS := 2
 	      ,DBG_VERBOSE  := 3
-
+	
 	static name         := ""
 	      ,version      := ""
 	      ,author       := ""
@@ -111,339 +41,9 @@ class script
 	      ,systemID     := ""
 	      ,dbgFile      := ""
 	      ,dbgLevel     := this.DBG_NONE
-
-
-	/**
-		Function: Update
-		Checks for the current script version
-		Downloads the remote version information
-		Compares and automatically downloads the new script file and reloads the script.
-
-		Parameters:
-		vfile - Version File
-		        Remote version file to be validated against.
-		rfile - Remote File
-		        Script file to be downloaded and installed if a new version is found.
-		        Should be a zip file that will be unzipped by the function
-
-		Notes:
-		The versioning file should only contain a version string and nothing else.
-		The matching will be performed against a SemVer format and only the three
-		major components will be taken into account.
-
-		e.g. '1.0.0'
-
-		For more information about SemVer and its specs click here: <https://semver.org/>
-	*/
-	Update(vfile, rfile)
-	{
-		; Error Codes
-		static ERR_INVALIDVFILE := 1
-		,ERR_INVALIDRFILE       := 2
-		,ERR_NOCONNECT          := 3
-		,ERR_NORESPONSE         := 4
-		,ERR_INVALIDVER         := 5
-		,ERR_CURRENTVER         := 6
-		,ERR_MSGTIMEOUT         := 7
-		,ERR_USRCANCEL          := 8
-
-		; A URL is expected in this parameter, we just perform a basic check
-		; TODO make a more robust match
-		if (!regexmatch(vfile, "^((?:http(?:s)?|ftp):\/\/)?((?:[a-z0-9_\-]+\.)+.*$)"))
-			throw {code: ERR_INVALIDVFILE, msg: "Invalid URL`n`nThe version file parameter must point to a 	valid URL."}
-
-		; This function expects a ZIP file
-		if (!regexmatch(rfile, "\.zip"))
-			throw {code: ERR_INVALIDRFILE, msg: "Invalid Zip`n`nThe remote file parameter must point to a zip file."}
-
-		; Check if we are connected to the internet
-		http := comobjcreate("WinHttp.WinHttpRequest.5.1")
-		http.Open("GET", "https://www.google.com", true)
-		http.Send()
-		try
-			http.WaitForResponse(1)
-		catch e
-			throw {code: ERR_NOCONNECT, msg: e.message}
-
-		Progress, 50, 50/100, % "Checking for updates", % "Updating"
-
-		; Download remote version file
-		http.Open("GET", vfile, true)
-		http.Send(), http.WaitForResponse()
-
-		if !(http.responseText)
-		{
-			Progress, OFF
-			throw {code: ERR_NORESPONSE, msg: "There was an error trying to download the ZIP file.`n"
-											. "The server did not respond."}
-		}
-		m(http.responseText)
-		regexmatch(this.version, "\d+\.\d+\.\d+", loVersion)
-		regexmatch(http.responseText, "\d+\.\d+\.\d+", remVersion)
-
-		Progress, 100, 100/100, % "Checking for updates", % "Updating"
-		sleep 500 	; allow progress to update
-		Progress, OFF
-
-		; Make sure SemVer is used
-		if (!loVersion || !remVersion)
-			throw {code: ERR_INVALIDVER, msg: "Invalid version.`nThis function works with SemVer. "
-											. "For more information refer to the documentation in the function"}
-
-		; Compare against current stated version
-		ver1 := strsplit(loVersion, ".")
-		ver2 := strsplit(remVersion, ".")
-
-		for i1,num1 in ver1
-		{
-			for i2,num2 in ver2
-			{
-				if (newversion)
-					break
-
-				if (i1 == i2)
-					if (num2 > num1)
-					{
-						newversion := true
-						break
-					}
-					else
-						newversion := false
-			}
-		}
-
-		if (!newversion)
-			throw {code: ERR_CURRENTVER, msg: "You are using the latest version"}
-		else
-		{
-			; If new version ask user what to do
-			; Yes/No | Icon Question | System Modal
-			msgbox % 0x4 + 0x20 + 0x1000
-				 , % "New Update Available"
-				 , % "There is a new update available for this application.`n"
-				   . "Do you wish to upgrade to v" remVersion "?"
-				 , 10	; timeout
-
-			ifmsgbox timeout
-				throw {code: ERR_MSGTIMEOUT, msg: "The Message Box timed out."}
-			ifmsgbox no
-				throw {code: ERR_USRCANCEL, msg: "The user pressed the cancel button."}
-
-			; Create temporal dirs
-			ghubname := (InStr(rfile, "github") ? regexreplace(a_scriptname, "\..*$") "-latest\" : "")
-			filecreatedir % tmpDir := a_temp "\" regexreplace(a_scriptname, "\..*$")
-			filecreatedir % zipDir := tmpDir "\uzip"
-
-			; Create lock file
-			fileappend % a_now, % lockFile := tmpDir "\lock"
-
-			; Download zip file
-			urldownloadtofile % rfile, % tmpDir "\temp.zip"
-
-			; Extract zip file to temporal folder
-			oShell := ComObjCreate("Shell.Application")
-			oDir := oShell.NameSpace(zipDir), oZip := oShell.NameSpace(tmpDir "\temp.zip")
-			oDir.CopyHere(oZip.Items), oShell := oDir := oZip := ""
-
-			filedelete % tmpDir "\temp.zip"
-
-			/*
-			******************************************************
-			* Wait for lock file to be released
-			* Copy all files to current script directory
-			* Cleanup temporal files
-			* Run main script
-			* EOF
-			*******************************************************
-			*/
-			if (a_iscompiled){
-				tmpBatch =
-				(Ltrim
-					:lock
-					if not exist "%lockFile%" goto continue
-					timeout /t 10
-					goto lock
-					:continue
-
-					xcopy "%zipDir%\%ghubname%*.*" "%a_scriptdir%\" /E /C /I /Q /R /K /Y
-					if exist "%a_scriptfullpath%" cmd /C "%a_scriptfullpath%"
-
-					cmd /C "rmdir "%tmpDir%" /S /Q"
-					exit
-				)
-				fileappend % tmpBatch, % tmpDir "\update.bat"
-				run % a_comspec " /c """ tmpDir "\update.bat""",, hide
-			}
-			else
-			{
-				tmpScript =
-				(Ltrim
-					while (fileExist("%lockFile%"))
-						sleep 10
-
-					FileCopyDir %zipDir%\%ghubname%, %a_scriptdir%, true
-					FileRemoveDir %tmpDir%, true
-
-					if (fileExist("%a_scriptfullpath%"))
-						run %a_scriptfullpath%
-					else
-						msgbox `% 0x10 + 0x1000
-							 , `% "Update Error"
-							 , `% "There was an error while running the updated version.``n"
-								. "Try to run the program manually."
-							 ,  10
-						exitapp
-				)
-				fileappend % tmpScript, % tmpDir "\update.ahk"
-				run % a_ahkpath " " tmpDir "\update.ahk"
-			}
-			filedelete % lockFile
-			exitapp
-		}
-	}
-
-	/**
-		Function: Autostart
-		This Adds the current script to the autorun section for the current
-		user.
-
-		Parameters:
-		status - Autostart status
-		         It can be either true or false.
-		         Setting it to true would add the registry value.
-		         Setting it to false would delete an existing registry value.
-	*/
-	Autostart(status)
-	{
-		if (status)
-		{
-			RegWrite, REG_SZ
-			        , HKCU\SOFTWARE\microsoft\windows\currentversion\run
-			        , %a_scriptname%
-			        , %a_scriptfullpath%
-		}
-		else
-			regdelete, HKCU\SOFTWARE\microsoft\windows\currentversion\run
-			         , %a_scriptname%
-	}
-
-	/**
-		Function: Splash
-		Shows a custom image as a splash screen with a simple fading animation
-
-		Parameters:
-		img   (opt) - file to be displayed
-		speed (opt) - fast the fading animation will be. Higher value is faster.
-		pause (opt) - long in seconds the image will be paused after fully displayed.
-	*/
-	Splash(img:="", speed:=10, pause:=2)
-	{
-		global
-
-			gui, splash: -caption +lastfound +border +alwaysontop +owner
-		$hwnd := winexist(), alpha := 0
-		winset, transparent, 0
-
-		gui, splash: add, picture, x0 y0 vpicimage, % img
-		guicontrolget, picimage, splash:pos
-		gui, splash: show, w%picimagew% h%picimageh%
-
-		setbatchlines 3
-		loop, 255
-		{
-			if (alpha >= 255)
-				break
-			alpha += speed
-			winset, transparent, %alpha%
-		}
-
-		; pause duration in seconds
-		sleep pause * 1000
-
-		loop, 255
-		{
-			if (alpha <= 0)
-				break
-			alpha -= speed
-			winset, transparent, %alpha%
-		}
-		setbatchlines -1
-
-		gui, splash:destroy
-		return
-	}
-
-	/**
-		Funtion: Debug
-		Allows sending conditional debug messages to the debugger and a log file filtered
-		by the current debug level set on the object.
-
-		Parameters:
-		level - Debug Level, which can be:
-		        * this.DBG_NONE
-		        * this.DBG_ERRORS
-		        * this.DBG_WARNINGS
-		        * this.DBG_VERBOSE
-
-		If you set the level for a particular message to *this.DBG_VERBOSE* this message
-		wont be shown when the class debug level is set to lower than that (e.g. *this.DBG_WARNINGS*).
-
-		label - Message label, mainly used to show the name of the function or label that triggered the message
-		msg   - Arbitrary message that will be displayed on the debugger or logged to the log file
-		vars* - Aditional parameters that whill be shown as passed. Useful to show variable contents to the debugger.
-
-		Notes:
-		The point of this function is to have all your debug messages added to your script and filter them out
-		by just setting the object's dbgLevel variable once, which in turn would disable some types of messages.
-	*/
-	Debug(level:=1, label:=">", msg:="", vars*)
-	{
-		if !this.dbglevel
-			return
-
-		for i,var in vars
-			varline .= "|" var
-
-		dbgMessage := label ">" msg "`n" varline
-
-		if (level <= this.dbglevel)
-			outputdebug % dbgMessage
-		if (this.dbgFile)
-			FileAppend, % dbgMessage, % this.dbgFile
-	}
-
-	/**
-		Function: About
-		Shows a quick HTML Window based on the object's variable information
-
-		Parameters:
-		scriptName   (opt) - Name of the script which will be
-		                     shown as the title of the window and the main header
-		version      (opt) - Script Version in SimVer format, a "v"
-		                     will be added automatically to this value
-		author       (opt) - Name of the author of the script
-		credits 	 (opt) - Name of credited people
-		ghlink 		 (opt) - GitHubLink
-		ghtext 		 (opt) - GitHubtext
-		doclink 	 (opt) - DocumentationLink
-		doctext 	 (opt) - Documentationtext
-		forumlink    (opt) - forumlink
-		forumtext    (opt) - forumtext
-		homepagetext (opt) - Display text for the script website
-		homepagelink (opt) - Href link to that points to the scripts
-		                     website (for pretty links and utm campaing codes)
-		donateLink   (opt) - Link to a donation site
-		email        (opt) - Developer email
-
-		Notes:
-		The function will try to infer the paramters if they are blank by checking
-		the class variables if provided. This allows you to set all information once
-		when instatiating the class, and the about GUI will be filled out automatically.
-	*/
 	About(scriptName:="", version:="", author:="",credits:="", homepagetext:="", homepagelink:="", donateLink:="", email:="")
 	{
 		static doc
-
 		scriptName := scriptName ? scriptName : this.name
 		version := version ? version : this.version
 		author := author ? author : this.author
@@ -459,7 +59,7 @@ class script
 		homepagelink := homepagelink ? homepagelink : RegExReplace(this.homepagelink, "http(s)?:\/\/")
 		donateLink := donateLink ? donateLink : RegExReplace(this.donateLink, "http(s)?:\/\/")
 		email := email ? email : this.email
-
+		
  		if (donateLink)
 		{
 			donateSection =
@@ -470,7 +70,7 @@ class script
 				<hr>
 			)
 		}
-
+		
 		html =
 		(
 			<!DOCTYPE html>
@@ -590,204 +190,11 @@ class script
 		doc.write(html)
 		gui show, AutoSize
 		return
-
+		
 		aboutClose:
-			gui aboutScript:destroy
+		gui aboutScript:destroy
 		return
 	}
-
-	/*
-		Function: GetLicense
-		Parameters:
-		Notes:
-	*/
-	GetLicense()
-	{
-		global
-
-		this.systemID := this.GetSystemID()
-		cleanName := RegexReplace(A_ScriptName, "\..*$")
-		for i,value in ["Type", "License"]
-			RegRead, %value%, % "HKCU\SOFTWARE\" cleanName, % value
-
-		if (!License)
-		{
-			MsgBox, % 0x4 + 0x20
-			      , % "No license"
-			      , % "Seems like there is no license activated on this computer.`n"
-			        . "Do you have a license that you want to activate now?"
-
-			IfMsgBox, Yes
-			{
-				Gui, license:new
-				Gui, add, Text, w160, % "Paste the License Code here"
-				Gui, add, Edit, w160 vLicenseNumber
-				Gui, add, Button, w75 vTest, % "Save"
-				Gui, add, Button, w75 x+10, % "Cancel"
-				Gui, show
-
-				saveFunction := Func("licenseButtonSave").bind(this)
-				GuiControl, +g, test, % saveFunction
-				Exit
-			}
-
-			MsgBox, % 0x30
-			      , % "Unable to Run"
-			      , % "This program cannot run without a license."
-
-			ExitApp, 1
-		}
-
-		return {"type"    : Type
-		       ,"number"  : License}
-	}
-
-	/*
-		Function: SaveLicense
-		Parameters:
-		Notes:
-	*/
-	SaveLicense(licenseType, licenseNumber)
-	{
-		cleanName := RegexReplace(A_ScriptName, "\..*$")
-
-		Try
-		{
-			RegWrite, % "REG_SZ"
-			        , % "HKCU\SOFTWARE\" cleanName
-			        , % "Type", % licenseType
-
-			RegWrite, % "REG_SZ"
-			        , % "HKCU\SOFTWARE\" cleanName
-			        , % "License", % licenseNumber
-
-			return true
-		}
-		catch
-			return false
-	}
-
-	/*
-		Function: IsLicenceValid
-		Parameters:
-		Notes:
-	*/
-	IsLicenceValid(licenseType, licenseNumber, URL)
-	{
-		res := this.EDDRequest(URL, "check_license", licenseType ,licenseNumber)
-
-		if InStr(res, """license"":""inactive""")
-			res := this.EDDRequest(URL, "activate_license", licenseType ,licenseNumber)
-
-		if InStr(res, """license"":""valid""")
-			return true
-		else
-			return false
-	}
-
-	GetSystemID()
-	{
-		wmi := ComObjGet("winmgmts:{impersonationLevel=impersonate}!\\" A_ComputerName "\root\cimv2")
-		(wmi.ExecQuery("Select * from Win32_BaseBoard")._newEnum)[Computer]
-		return Computer.SerialNumber
-	}
-
-	/*
-		Function: EDDRequest
-		Parameters:
-		Notes:
-	*/
-	EDDRequest(URL, Action, licenseType, licenseNumber)
-	{
-		strQuery := url "?edd_action=" Action
-		         .  "&item_id=" licenseType
-		         .  "&license=" licenseNumber
-		         .  (this.systemID ? "&url=" this.systemID : "")
-
-		try
-		{
-			http := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-			http.Open("GET", strQuery)
-			http.SetRequestHeader("Pragma", "no-cache")
-			http.SetRequestHeader("Cache-Control", "no-cache, no-store")
-			http.SetRequestHeader("User-Agent", "Mozilla/4.0 (compatible; Win32)")
-
-			http.Send()
-			http.WaitForResponse()
-
-			return http.responseText
-		}
-		catch err
-			return err.what ":`n" err.message
-	}
-
-	; Activate()
-	; 	{
-	; 	strQuery := this.strEddRootUrl . "?edd_action=activate_license&item_id=" . this.strRequestedProductId . "&license=" . this.strEddLicense . "&url=" . this.strUniqueSystemId
-	; 	strJSON := Url2Var(strQuery)
-	; 	Diag(A_ThisFunc . " strQuery", strQuery, "")
-	; 	Diag(A_ThisFunc . " strJSON", strJSON, "")
-	; 	return JSON.parse(strJSON)
-	; 	}
-	; Deactivate()
-	; 	{
-	; 	Loop, Parse, % "/|", |
-	; 	{
-	; 	strQuery := this.strEddRootUrl . "?edd_action=deactivate_license&item_id=" . this.strRequestedProductId . "&license=" . this.strEddLicense . "&url=" . this.strUniqueSystemId . A_LoopField
-	; 	strJSON := Url2Var(strQuery)
-	; 	Diag(A_ThisFunc . " strQuery", strQuery, "")
-	; 	Diag(A_ThisFunc . " strJSON", strJSON, "")
-	; 	this.oLicense := JSON.parse(strJSON)
-	; 	if (this.oLicense.success)
-	; 	break
-	; 	}
-	; 	}
-	; GetVersion()
-	; 	{
-	; 	strQuery := this.strEddRootUrl . "?edd_action=get_version&item_id=" . this.oLicense.item_id . "&license=" . this.strEddLicense . "&url=" . this.strUniqueSystemId
-	; 	strJSON := Url2Var(strQuery)
-	; 	Diag(A_ThisFunc . " strQuery", strQuery, "")
-	; 	Diag(A_ThisFunc . " strJSON", strJSON, "")
-	; 	return JSON.parse(strJSON)
-	; 	}
-	; RenewLink()
-	; 	{
-	; 	strUrl := this.strEddRootUrl . "checkout/?edd_license_key=" . this.strEddLicense . "&download_id=" . this.oLicense.item_id
-	; 	Diag(A_ThisFunc . " strUrl", strUrl, "")
-	; 	return strUrl
-	; 	}
-}
-
-licenseButtonSave(this, CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
-{
-	GuiControlGet, LicenseNumber
-	if this.IsLicenceValid(this.eddID, licenseNumber, "https://www.the-automator.com")
-	{
-		this.SaveLicense(this.eddID, LicenseNumber)
-		MsgBox, % 0x30
-		      , % "License Saved"
-		      , % "The license was applied correctly!`n"
-		        . "The program will start now."
-		
-		Reload
-	}
-	else
-	{
-		MsgBox, % 0x10
-		      , % "Invalid License"
-		      , % "The license you entered is invalid and cannot be activated."
-
-		ExitApp, 1
-	}
-}
-
-licenseButtonCancel(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
-{
-	MsgBox, % 0x30
-	      , % "Unable to Run"
-	      , % "This program cannot run without a license."
-
-	ExitApp, 1
 }
 
 FileGetTime, ModDate,%A_ScriptFullPath%,M
@@ -829,12 +236,11 @@ bDownloadToFile:=1 ;!bDownloadToVariable
 f_CreateTrayMenu(VN)
 if bDownloadToFile
 {
-    if FileExist(script.configfile) ; check if library exists. Additionally, 
-        DataArr:=fReadIni(script.configfile) ; load the data of the
-    Else
-        gosub, lWriteLibraryFromHardCode
+	if FileExist(script.configfile) ; check if library exists. Additionally, 
+		DataArr:=fReadIni(script.configfile) ; load the data of the
+	Else
+		gosub, lWriteLibraryFromHardCode
 }
-
 OnMessage(0x404, "f_TrayIconSingleClickCallBack")
 return
 
@@ -848,56 +254,56 @@ str:=""
 global ErrorString:=""
 for k, v in aSel
 {
-    ErrorArr:=[]
-    str.="`n"
-    v:=StrReplace(v ,"`r","")
+	ErrorArr:=[]
+	str.="`n"
+	v:=StrReplace(v ,"`r","")
 	v:=StrReplace(v,":","") ; remove ":" from string if existing
 	v=%v%
-    {
-        stype:=SubStr(v,1,1)
-        if DataArr["P-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="P")
-        {
-            bHasVal1:=true
-            str.=v ": " DataArr["P-Phrases"][v] 
-        }
-        Else
-            bHasVal1:=false
-        if DataArr["H-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="H")
-        {
-            bHasVal2:=true
-            str.=v ": " DataArr["H-Phrases"][v] 
-        }
-        Else
-            bHasVal2:=false
-        if DataArr["Physical properties"].HasKey(v) && !InStr(v,"+") 
-        {
-            bHasVal3:=true
-            str.=v ": " DataArr["Physical properties"][v] 
-        }
-        Else
-            bHasVal3:=false
-        if DataArr["Environmental properties"].HasKey(v) && !InStr(v,"+") 
-        {
-            bHasVal4:=true
-            str.=v ": " DataArr["Environmental properties"][v]
-        }
-        else
-            bHasVal4:=false
-        if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(v) && !InStr(v,"+") 
-        {
-            bHasVal5:=true
-            str.=v ": " DataArr["Supplemental label elements/information on certain substances and mixtures"][v]
-        }
-        else
-            bHasVal5:=false
-        if (!bHasVal1) and (!bHasVal2) and (!bHasVal3) and (!bHasVal4) and (!bHasVal5) ;|| InStr(v,"")
-            if (v!="") and !InStr(v,"#")
+	{
+		stype:=SubStr(v,1,1)
+		if DataArr["P-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="P")
+		{
+			bHasVal1:=true
+			str.=v ": " DataArr["P-Phrases"][v] 
+		}
+		Else
+			bHasVal1:=false
+		if DataArr["H-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="H")
+		{
+			bHasVal2:=true
+			str.=v ": " DataArr["H-Phrases"][v] 
+		}
+		Else
+			bHasVal2:=false
+		if DataArr["Physical properties"].HasKey(v) && !InStr(v,"+") 
+		{
+			bHasVal3:=true
+			str.=v ": " DataArr["Physical properties"][v] 
+		}
+		Else
+			bHasVal3:=false
+		if DataArr["Environmental properties"].HasKey(v) && !InStr(v,"+") 
+		{
+			bHasVal4:=true
+			str.=v ": " DataArr["Environmental properties"][v]
+		}
+		else
+			bHasVal4:=false
+		if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(v) && !InStr(v,"+") 
+		{
+			bHasVal5:=true
+			str.=v ": " DataArr["Supplemental label elements/information on certain substances and mixtures"][v]
+		}
+		else
+			bHasVal5:=false
+		if (!bHasVal1) and (!bHasVal2) and (!bHasVal3) and (!bHasVal4) and (!bHasVal5) ;|| InStr(v,"")
+			if (v!="") and !InStr(v,"#")
 			{
-                ErrorArr[v]:= "Error " vNumErr ": Key '" v "' could not be found on file. Please search and insert manually."
+				ErrorArr[v]:= "Error " vNumErr ": Key '" v "' could not be found on file. Please search and insert manually."
 			}
-    }
-      
-    str:=StrReplace(f_ProcessErrors(ErrorArr,DataArr,str)," : ",A_Space)
+	}
+	
+	str:=StrReplace(f_ProcessErrors(ErrorArr,DataArr,str)," : ",A_Space)
 }
 newStr:=str "`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------------------" ErrorString "`n-----------------------------"
 fClip(newStr)
@@ -918,16 +324,16 @@ return
 ;}______________________________________________________________________________________
 ;{#[Functions Section]
 /*
-
-H P E number 
+	
+	H P E number 
 */
 f_ProcessErrors(ErrorArr,DataArr,str)
 {
-    strCompoundAssembled:=""
-    for k,v in ErrorArr
-        strCompoundAssembled:=k
-    for k,v in ErrorArr
-    {
+	strCompoundAssembled:=""
+	for k,v in ErrorArr
+		strCompoundAssembled:=k
+	for k,v in ErrorArr
+	{
 		; 1st-level combination search
 		if DataArr["P-Phrases"].HasKey(k) 
 		{
@@ -951,56 +357,48 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 			return str strCompoundAssembled.=": " DataArr["Supplemental label elements/information on certain substances and mixtures"][k]
 			
 		}
-
 		; 2nd-level compound creation
-        strCompoundAssembled:=k 
-        CompoundStatementArr:=StrSplit(k,"+")
+		strCompoundAssembled:=k 
+		CompoundStatementArr:=StrSplit(k,"+")
 		bWasFoundArr:=[]
 		ErrorsFound:=[]
-        for s,w in CompoundStatementArr
-        {
-
-            if DataArr["P-Phrases"].HasKey(w) ;(stype="P")
-            {
-                bHasVal1:=true
-                strCompoundAssembled.=": " DataArr["P-Phrases"][w] 
-                ; CompoundStatementArr.Remove(s)
-            }
-            Else
-                bHasVal1:=false
-            if DataArr["H-Phrases"].HasKey(w) ;(stype="H")
-            {
-                bHasVal2:=true
-                strCompoundAssembled.=": " DataArr["H-Phrases"][w] 
-                ; CompoundStatementArr.Remove(s)
-            }
-            Else
-                bHasVal2:=false
-            if DataArr["Physical properties"].HasKey(w)
-            {
-                bHasVal3:=true
-                strCompoundAssembled.=": " DataArr["Physical properties"][w] 
-                ; ErrorArr.Remove(k)
-				; CompoundStatementArr.Remove(s)
-            }
-            Else
-                bHasVal3:=false
-            if DataArr["Environmental properties"].HasKey(w)
-            {
-                bHasVal4:=true
-                strCompoundAssembled.=": " DataArr["Environmental properties"][w]
-                ; CompoundStatementArr.Remove(s)
-            }
-            else
-                bHasVal4:=false
-            if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(w)
-            {
-                bHasVal5:=true
-                strCompoundAssembled.=": " DataArr["Supplemental label elements/information on certain substances and mixtures"][w]
-                ; CompoundStatementArr.Remove(s)
-            }
-            else
-                bHasVal5:=false
+		for s,w in CompoundStatementArr
+		{
+			if DataArr["P-Phrases"].HasKey(w) ;(stype="P")
+			{
+				bHasVal1:=true
+				strCompoundAssembled.=": " DataArr["P-Phrases"][w] 
+			}
+			Else
+				bHasVal1:=false
+			if DataArr["H-Phrases"].HasKey(w) ;(stype="H")
+			{
+				bHasVal2:=true
+				strCompoundAssembled.=": " DataArr["H-Phrases"][w] 
+			}
+			Else
+				bHasVal2:=false
+			if DataArr["Physical properties"].HasKey(w)
+			{
+				bHasVal3:=true
+				strCompoundAssembled.=": " DataArr["Physical properties"][w] 
+			}
+			Else
+				bHasVal3:=false
+			if DataArr["Environmental properties"].HasKey(w)
+			{
+				bHasVal4:=true
+				strCompoundAssembled.=": " DataArr["Environmental properties"][w]
+			}
+			else
+				bHasVal4:=false
+			if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(w)
+			{
+				bHasVal5:=true
+				strCompoundAssembled.=": " DataArr["Supplemental label elements/information on certain substances and mixtures"][w]
+			}
+			else
+				bHasVal5:=false
 			bIndentPhrase:=false
 			if (!bHasVal1 && !bHasVal2 && !bHasVal3 && !bHasVal4 && !bHasVal5)
 			{
@@ -1010,31 +408,30 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 				bIndentPhrase:=true
 				bPhaseWasIndented:=true
 				strCompoundAssembled.= ": " w 
-		    	vNumErr++
+				vNumErr++
 			}
-            strCompoundAssembled.=" "
-        }
+			strCompoundAssembled.=" "
+		}
 		ErrorString:=RegExReplace(ErrorString,"^(?!.*Specific phrase missing.*).+$")
-    }
+	}
 	if bIndentPhrase  || bPhaseWasIndented ; aka we have errors
 		return str A_Tab strCompoundAssembled
 	else
-    	return str strCompoundAssembled
+		return str strCompoundAssembled
 }
 
 f_CreateTrayMenu(IniObj)
 { ; facilitates creation of the tray menu
-    menu, tray, add,
-    Menu, Misc, add, Open Script-folder, lOpenScriptFolder
-    Menu, Misc, add, Search for GHS changes , lUpdateLibrary
-    menu, Misc, Add, Reload, lReload
-    menu, Misc, Add, About, Label_AboutFile
+	menu, tray, add,
+	Menu, Misc, add, Open Script-folder, lOpenScriptFolder
+	Menu, Misc, add, Search for GHS changes , lUpdateLibrary
+	menu, Misc, Add, Reload, lReload
+	menu, Misc, Add, About, Label_AboutFile
 	menu, Misc, Add, How to use it, lExplainHowTo
-    SplitPath, A_ScriptName,,,, scriptname
-    f_AddStartupToggleToTrayMenu(script.name,"Misc")
-    Menu, tray, add, Miscellaneous, :Misc
-    menu, tray, add,
-    return
+	SplitPath, A_ScriptName,,,, scriptname
+	Menu, tray, add, Miscellaneous, :Misc
+	menu, tray, add,
+	return
 }
 lOpenScriptFolder:
 run, % A_ScriptDir
@@ -1057,59 +454,25 @@ f_TrayIconSingleClickCallBack(wParam, lParam)
 		return 0
 	}
 }
-f_AddStartupToggleToTrayMenu(scriptname,MenuNameToInsertAt:="Tray")
-{ ; add a toggle to create a link in startup folder for this script to the respective menu
-    VNI=1.0.0.1
-    global startUpDir 
-    global MenuNameToInsertAt2
-    global bBootSetting
-    MenuNameToInsertAt2:=MenuNameToInsertAt
-    startUpDir:=(A_Startup "\" A_ScriptName " - Shortcut.lnk")
-    Menu, %MenuNameToInsertAt%, add, Start at Boot, lStartUpToggle
-    If FileExist(startUpDir)
-    {
-        Menu, %MenuNameToInsertAt%, Check, Start at Boot
-        bBootSetting:=1
-    }
-    else
-    {
-        Menu, %MenuNameToInsertAt%, UnCheck, Start at Boot
-        bBootSetting:=0
-    }
-    return
-    lStartUpToggle: ; I could really use a better way to know the name of the menu item that was selected
-    if !bBootSetting 
-    {
-        bBootSetting:=1
-        FileCreateShortcut, %A_ScriptFullPath%, %startUpDir%
-        Menu, %MenuNameToInsertAt2%, Check, Start at Boot
-    }
-    else if bBootSetting
-    {
-        bBootSetting:=0
-        FileDelete, %startUpDir%
-        Menu, %MenuNameToInsertAt2%, UnCheck, Start at Boot
-    }
-    return
-}
+
 HasVal(haystack, needle) 
 {	; code from jNizM on the ahk forums: https://www.autohotkey.com/boards/viewtopic.php?p=109173&sid=e530e129dcf21e26636fec1865e3ee30#p109173
     ; if !(IsObject(haystack)) || (haystack.Length() = 0)
     ; 	return 0
-    for index, value in haystack
-        if (value = needle)
-            return index
-    return 0
+	for index, value in haystack
+		if (value = needle)
+			return index
+	return 0
 }
 f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
-	{ ; throws an error-message, possibly with further postprocessing
-		if (ReferencePlace="D")
-			Reference:="Documentation"
-		else 
-			Reference:="Source Code: Function called on line " ReferencePlace "`nError invoked in function body on line " Exception("", -1).Line
-		if (ErrorCode!=0)
-		{
-			str=
+{ ; throws an error-message, possibly with further postprocessing
+	if (ReferencePlace="D")
+		Reference:="Documentation"
+	else 
+		Reference:="Source Code: Function called on line " ReferencePlace "`nError invoked in function body on line " Exception("", -1).Line
+	if (ErrorCode!=0)
+	{
+		str=
 	(
 	Function: %Source%
 	Errorcode: "%ErrorCode%" - Refer to %Reference%
@@ -1117,10 +480,10 @@ f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
 	Error: 
 	%Message%
 	)
-		}
-		else
-		{
-			str=
+	}
+	else
+	{
+		str=
 	(
 	Function: %Source%	
 	Errorcode: Refer to %Reference%
@@ -1128,10 +491,10 @@ f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
 	Error: 
 	%Message%
 	)
-		}
-		MsgBox, % str
-		return
 	}
+	MsgBox, % str
+	return
+}
 
 
 ;}_____________________________________________________________________________________
@@ -1143,8 +506,8 @@ f_ThrowError(Source,Message,ErrorCode:=0,ReferencePlace:="S")
 
 lWriteLibraryFromHardCode:
 {
-
-LibraryBackup=
+	
+	LibraryBackup=
 (
 [H-Phrases]
 H200=Unstable explosives.
@@ -1398,113 +761,86 @@ EUH401=To avoid risks to human health and the environment, comply with the instr
 ; m("figure out how to write a continuation section to file successfully")
 f_ThrowError("Main Code Body","Library-file containing the H&P-phrases does not exist, initiating from default settings. ", script.name . "_"0, Exception("",-1).Line)
 if !InStr(FileExist(script.configfolder),"D") ; check if folder structure exists
-    FileCreateDir, % script.configfolder 
+	FileCreateDir, % script.configfolder 
 	;FileCreateDir, % A_ScriptDir "\INI-Files"
     ; 'd:=script.configfolder:= script.configfolder . "HI\"
 ; sPathLibraryFile
 if fIsConnected()   ; load from gist.
 {
-    UrlDownloadToFile, % script.libraryurl ,% script.configfile
-    FileReadLine, bDownloadStatus,% script.configfile, % 1
-    if (bDownloadStatus="404: Not Found")
-    {
-        FileDelete, % script.configfile ; URL faulty and cannot retrieve correct text. Fallback on hard-coded version
-        FileAppend, % LibraryBackup, % script.configfile
-    }    
+	UrlDownloadToFile, % script.libraryurl ,% script.configfile
+	FileReadLine, bDownloadStatus,% script.configfile, % 1
+	if (bDownloadStatus="404: Not Found")
+	{
+		FileDelete, % script.configfile ; URL faulty and cannot retrieve correct text. Fallback on hard-coded version
+		FileAppend, % LibraryBackup, % script.configfile
+	}    
 }
 else                ; load from hard coded var
-    FileAppend, % LibraryBackup, % script.configfile
+	FileAppend, % LibraryBackup, % script.configfile
 DataArr:=fReadIni(script.configfile) ; load the data to use.
-; sPathLibraryFile:=script.configfile
 gosub, lExplainHowTo
 return
 
 lExplainHowTo:
 run,% script.doclink
-; msgbox, % "Missing Definitions of Phrases. Creating Library-File in """ A_ScriptDir """ for future uses.Phrases taken from ""https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm""`n fetched on 15.11.2021"
-; msgbox, % "In order to use this, write the H-and P-phrases below each other: `nH317`nH319`nH361`n Alternatively, combinations of phrases must be written like this: P305+P351+P338"
-; msgbox, % "After finishing collecting all phrases of a chemical, highlight/select each set of phrases on their own. Then, press Alt+0 (The number row-0, not the 0 of the NumBlock). The corresponding phrases will then be inserted into the document."
-; msgbox, % "The Error-Log gives an overview if phrases cannot be found in the file, and need to be added to that file first."
-; msgbox, % "I obviously do not guarantee the validity of the phrases which come with this file, because they might change and are probably dependent on where you life."
-; msgbox, % "To edit phrases, open the library file and edit the respective phrase `nYou can also add phrases, by following the style in the file. Make sure you don't edit the [Headers], such as [P-Phrases]."
 return
 
 fReadINI(INI_File,bIsVar=0) ; return 2D-array from INI-file
+{
+	Result := []
+	if !bIsVar ; load a simple file
 	{
-		Result := []
-		if !bIsVar ; load a simple file
-		{
-            SplitPath, INI_File,, WorkDir
-			OrigWorkDir:=A_WorkingDir
-			SetWorkingDir, % WorkDir
-			IniRead, SectionNames, %INI_File%
-			for each, Section in StrSplit(SectionNames, "`n") {
-				IniRead, OutputVar_Section, %INI_File%, %Section%
-				for each, Haystack in StrSplit(OutputVar_Section, "`n")
-					RegExMatch(Haystack, "(.*?)=(.*)", $)
+		SplitPath, INI_File,, WorkDir
+		OrigWorkDir:=A_WorkingDir
+		SetWorkingDir, % WorkDir
+		IniRead, SectionNames, %INI_File%
+		for each, Section in StrSplit(SectionNames, "`n") {
+			IniRead, OutputVar_Section, %INI_File%, %Section%
+			for each, Haystack in StrSplit(OutputVar_Section, "`n")
+				RegExMatch(Haystack, "(.*?)=(.*)", $)
 				, Result[Section, $1] := $2
-			}
-			if A_WorkingDir!=OrigWorkDir
-				SetWorkingDir, %OrigWorkDir%
 		}
-		else ; convert string
-		{
-            Lines:=StrSplit(bIsVar,"`n")
+		if A_WorkingDir!=OrigWorkDir
+			SetWorkingDir, %OrigWorkDir%
+	}
+	else ; convert string
+	{
+		Lines:=StrSplit(bIsVar,"`n")
             ; Arr:=[]
-            bIsInSection:=false
-            for k,v in lines
-            {
-
-                If SubStr(v,1,1)="[" && SubStr(v,StrLen(v),1)="]"
-                {
+		bIsInSection:=false
+		for k,v in lines
+		{
+			
+			If SubStr(v,1,1)="[" && SubStr(v,StrLen(v),1)="]"
+			{
                     SectionHeader:=SubStr(v,2)
                     SectionHeader:=SubStr(SectionHeader,1,StrLen(SectionHeader)-1)
                     bIsInSection:=true
                     currentSection:=SectionHeader
-                }
-                if bIsInSection
-                {
+			}
+			if bIsInSection
+			{
                     RegExMatch(v, "(.*?)=(.*)", $)
                     if ($2!="")
-                        Result[currentSection,$1] := $2
-                }
-            }
-        }
-		return Result
-		/* Original File from https://www.autohotkey.com/boards/viewtopic.php?p=256714#p256714
-		;-------------------------------------------------------------------------------
-			ReadINI(INI_File) { ; return 2D-array from INI-file
-		;-------------------------------------------------------------------------------
-				Result := []
-				IniRead, SectionNames, %INI_File%
-				for each, Section in StrSplit(SectionNames, "`n") {
-					IniRead, OutputVar_Section, %INI_File%, %Section%
-					for each, Haystack in StrSplit(OutputVar_Section, "`n")
-						RegExMatch(Haystack, "(.*?)=(.*)", $)
-				, Result[Section, $1] := $2
-				}
-				return Result
-		*/
+					Result[currentSection,$1] := $2
+			}
+		}
 	}
+	return Result
+}
 
 fIsConnected(URL="https://google.com") 
 { ; retrieved from lxiko's "AHKRare" https://github.com/Ixiko/AHK-Rare          ;-- Returns true if there is an available internet connection
 	return DllCall("Wininet.dll\InternetCheckConnection", "Str", URL,"UInt", 1, "UInt",0, "UInt")
-} ;</10.01.000020>
- ;Clip() - Send and Retrieve Text Using the Clipboard
- ;by berban - updated February 18, 2019
- ;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=62156
-
- ;modified by Gewerd Strauss
-
+} 
 fClip(Text="", Reselect="",Restore:=1,DefaultMethod:=1)
 {
 	/*
-	Parameters
-	Text: variable whose contents to paste. 
-	Reselect: set true if you want to reselect pasted text for further processing
-	Restore: restore clipboard after using it. 
-	DefaultMethod: keep true to use the original method. Recommended for anyone but Gewerd S./me, as I needed some extremely minute modifications in some places and expanded the whole function to be more readable for me. 
+		Parameters
+		Text: variable whose contents to paste. 
+		Reselect: set true if you want to reselect pasted text for further processing
+		Restore: restore clipboard after using it. 
+		DefaultMethod: keep true to use the original method. Recommended for anyone but Gewerd S./me, as I needed some extremely minute modifications in some places and expanded the whole function to be more readable for me. 
 	*/
 	if !DefaultMethod
 	{
@@ -1650,8 +986,6 @@ fClip(Text="", Reselect="",Restore:=1,DefaultMethod:=1)
 	BlockInput,Off
 	Return fClip()
 }
-
-
 f_unstickKeys()
 {
 	BlockInput, On
@@ -1661,44 +995,3 @@ f_unstickKeys()
 	SendInput, {Alt Up}
 	BlockInput, Off
 }
-
-
-/* original by berban https://github.com/berban/Clip/blob/master/Clip.ahk
-	; Clip() - Send and Retrieve Text Using the Clipboard
-; by berban - updated February 18, 2019
-; https://www.autohotkey.com/boards/viewtopic.php?f=6&t=62156
-	Clip(Text="", Reselect="")
-	{
-		Static BackUpClip, Stored, LastClip
-		If (A_ThisLabel = A_ThisFunc) {
-			If (Clipboard == LastClip)
-				Clipboard := BackUpClip
-			BackUpClip := LastClip := Stored := ""
-		} Else {
-			If !Stored {
-				Stored := True
-				BackUpClip := ClipboardAll ; ClipboardAll must be on its own line
-			} Else
-				SetTimer, %A_ThisFunc%, Off
-			LongCopy := A_TickCount, Clipboard := "", LongCopy -= A_TickCount ; LongCopy gauges the amount of time it takes to empty the clipboard which can predict how long the subsequent clipwait will need
-			If (Text = "") {
-				SendInput, ^c
-				ClipWait, LongCopy ? 0.6 : 0.2, True
-			} Else {
-				Clipboard := LastClip := Text
-				ClipWait, 10
-				SendInput, ^v
-			}
-			SetTimer, %A_ThisFunc%, -700
-			Sleep 20 ; Short sleep in case Clip() is followed by more keystrokes such as {Enter}
-			If (Text = "")
-				Return LastClip := Clipboard
-			Else If ReSelect and ((ReSelect = True) or (StrLen(Text) < 3000))
-				SendInput, % "{Shift Down}{Left " StrLen(StrReplace(Text, "`r")) "}{Shift Up}"
-		}
-		Return
-		Clip:
-		Return Clip()
-	}
-*/
-
