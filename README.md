@@ -16,7 +16,7 @@ P280
 P305+P351+P338
 ```
 
-Then, highlight all the phrase-keys you want to translate, and press <kbd>Alt</kbd> + <kbd>0</kbd>
+Then, highlight all the phrase-keys you want to translate, and press <kbd>Alt</kbd> + <kbd>0</kbd> (on the number row, _not_ on the numpad)
 
 ```
 Stannous Octaoate:
