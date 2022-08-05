@@ -1,4 +1,4 @@
-﻿#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 #SingleInstance,Force
 ;#Persistent
 ; #Warn All  ; Enable warnings to assist with detecting common errors.
@@ -12,191 +12,7 @@ Menu, Tray, Icon, C:\WINDOWS\system32\shell32.dll,78 ;Set custom Script icon
 ;ntfy:=Notify()
 ;;_____________________________________________________________________________________
 ;{#[General Information for file management]
-class script
-{
-	static DBG_NONE     := 0
-	      ,DBG_ERRORS   := 1
-	      ,DBG_WARNINGS := 2
-	      ,DBG_VERBOSE  := 3
-	
-	static name         := ""
-	      ,version      := ""
-	      ,author       := ""
-	      ,email        := ""
-		  ,credits      := ""
-		  ,creditslink  := ""
-	      ,crtdate      := ""
-	      ,moddate      := ""
-	      ,homepagetext := ""
-	      ,homepagelink := ""
-		  ,ghlink		:= ""
-		  ,ghtext 		:= ""
-          ,doclink      := ""
-          ,doctext		:= ""
-		  ,forumlink 	:= ""
-		  ,forumtext 	:= ""
-	      ,resfolder    := ""
-	      ,icon         := ""
-	      ,config       := ""
-	      ,systemID     := ""
-	      ,dbgFile      := ""
-	      ,dbgLevel     := this.DBG_NONE
-	About(scriptName:="", version:="", author:="",credits:="", homepagetext:="", homepagelink:="", donateLink:="", email:="")
-	{
-		static doc
-		scriptName := scriptName ? scriptName : this.name
-		version := version ? version : this.version
-		author := author ? author : this.author
-		credits := credits ? credits : this.credits
-		creditslink := creditslink ? creditslink : RegExReplace(this.creditslink, "http(s)?:\/\/")
-		ghtext := ghtext ? ghtext : RegExReplace(this.ghtext, "http(s)?:\/\/")
-		ghlink := ghlink ? ghlink : RegExReplace(this.ghlink, "http(s)?:\/\/")
-		doctext := doctext ? doctext : RegExReplace(this.doctext, "http(s)?:\/\/")
-		doclink := doclink ? doclink : RegExReplace(this.doclink, "http(s)?:\/\/")
-		forumtext := forumtext ? forumtext : RegExReplace(this.forumtext, "http(s)?:\/\/")
-		forumlink := forumlink ? forumlink : RegExReplace(this.forumlink, "http(s)?:\/\/")
-		homepagetext := homepagetext ? homepagetext : RegExReplace(this.homepagetext, "http(s)?:\/\/")
-		homepagelink := homepagelink ? homepagelink : RegExReplace(this.homepagelink, "http(s)?:\/\/")
-		donateLink := donateLink ? donateLink : RegExReplace(this.donateLink, "http(s)?:\/\/")
-		email := email ? email : this.email
-		
- 		if (donateLink)
-		{
-			donateSection =
-			(
-				<div class="donate">
-					<p>If you like this tool please consider <a href="https://%donateLink%">donating</a>.</p>
-				</div>
-				<hr>
-			)
-		}
-		
-		html =
-		(
-			<!DOCTYPE html>
-			<html lang="en" dir="ltr">
-				<head>
-					<meta charset="utf-8">
-					<meta http-equiv="X-UA-Compatible" content="IE=edge">
-					<style media="screen">
-						.top {
-							text-align:center;
-						}
-						.top h2 {
-							color:#2274A5;
-							margin-bottom: 5px;
-						}
-						.donate {
-							color:#E83F6F;
-							text-align:center;
-							font-weight:bold;
-							font-size:small;
-							margin: 20px;
-						}
-						p {
-							margin: 0px;
-						}
-					</style>
-				</head>
-				<body>
-					<div class="top">
-						<h2>%scriptName%</h2>
-						<p>v%version%</p>
-						<hr>
-						<p>by %author%</p>
-		)
-		if ghlink and ghtext
-		{
-			sTmp=
-			(
-
-						<p><a href="https://%ghlink%" target="_blank">%ghtext%</a></p>
-			)
-			html.=sTmp
-		}
-		if doclink and doctext
-		{
-			sTmp=
-			(
-
-						<p><a href="https://%doclink%" target="_blank">%doctext%</a></p>
-			)
-			html.=sTmp
-		}
-		if creditslink and credits
-		{
-			; Clipboard:=html
-			sTmp=
-			(
-
-						<p>credits: <a href="https://%creditslink%" target="_blank">%credits%</a></p>
-						<hr>
-			)
-			html.=sTmp
-		}
-		if forumlink and forumtext
-		{
-			sTmp=
-			(
-
-						<p><a href="https://%forumlink%" target="_blank">%forumtext%</a></p>
-			)
-			html.=sTmp
-		}
-		if homepagelink and homepagetext
-		{
-			sTmp=
-			(
-
-						<p><a href="https://%homepagelink%" target="_blank">%homepagetext%</a></p>
-
-			)
-			html.=sTmp
-		}
-		sTmp=
-		(
-
-								</div>
-					%donateSection%
-				</body>
-			</html>
-		)
-		html.=sTmp
-		; Clipboard:=html
-		; html.= "`n
-		; (
-		; 	HEllo World
-		; )"
-		; Clipboard:=html
- 		btnxPos := 300/2 - 75/2
-		axHight:=12
-		donateHeight := donateLink ? 6 : 0
-		forumHeight := forumlink ? 1 : 0
-		ghHeight := ghlink ? 1 : 0
-		creditsHeight := creditslink ? 1 : 0
-		homepageHeight := homepagelink ? 1 : 0
-		docHeight := doclink ? 1 : 0
-		axHight+=donateHeight
-		axHight+=forumHeight
-		axHight+=ghHeight
-		axHight+=creditsHeight
-		axHight+=homepageHeight
-		axHight+=docHeight
-		gui aboutScript:new, +alwaysontop +toolwindow, % "About " this.name
-		gui margin, 2
-		gui color, white
-		gui add, activex, w300 r%axHight% vdoc, htmlFile
-		gui add, button, w75 x%btnxPos% gaboutClose, % "&Close"
-		doc.write(html)
-		gui show, AutoSize
-		return
-		
-		aboutClose:
-		gui aboutScript:destroy
-		return
-	}
-}
-
+#Include, <ScriptObj/ScriptObj>
 FileGetTime, ModDate,%A_ScriptFullPath%,M
 FileGetTime, CrtDate,%A_ScriptFullPath%,C
 CrtDate:=SubStr(CrtDate,7,  2) "." SubStr(CrtDate,5,2) "." SubStr(CrtDate,1,4)
@@ -245,9 +61,12 @@ OnMessage(0x404, "f_TrayIconSingleClickCallBack")
 return
 
 
+
+
 ;}______________________________________________________________________________________
 ;{#[Hotkeys Section]
 !0::
+Numpad0::
 aSel:=StrSplit(fClip(),"`n")
 global vNumErr:=1
 str:=""
@@ -258,10 +77,9 @@ for k, v in aSel
 	str.="`n"
 	v:=StrReplace(v ,"`r","")
 	v:=StrReplace(v,":","") ; remove ":" from string if existing
-	v=%v%
 	{
 		stype:=SubStr(v,1,1)
-		if DataArr["P-Phrases"].HasKey(v) && !InStr(v,"+") ;(stype="P")
+		if d:=(DataArr["P-Phrases"].HasKey(v) && !InStr(v,"+")?) ;(stype="P")
 		{
 			bHasVal1:=true
 			str.=v ": " DataArr["P-Phrases"][v] 
@@ -298,14 +116,13 @@ for k, v in aSel
 			bHasVal5:=false
 		if (!bHasVal1) and (!bHasVal2) and (!bHasVal3) and (!bHasVal4) and (!bHasVal5) ;|| InStr(v,"")
 			if (v!="") and !InStr(v,"#")
-			{
 				ErrorArr[v]:= "Error " vNumErr ": Key '" v "' could not be found on file. Please search and insert manually."
-			}
 	}
-	
 	str:=StrReplace(f_ProcessErrors(ErrorArr,DataArr,str)," : ",A_Space)
 }
-newStr:=str "`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------------------" ErrorString "`n-----------------------------"
+newStr:=str 
+ClipBoard:=newStr.= (ErrorString!="")?"`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------------------" ErrorString "`n-----------------------------":""
+; newStr2:= str (ErrorString!="")?"`n`n`nERROR LOG (REMOVE AFTERWARDS)`n-----------------------------" ErrorString "`n-----------------------------":"" ;; why does this not concat properly??
 fClip(newStr)
 return
 
@@ -336,27 +153,15 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 	{
 		; 1st-level combination search
 		if DataArr["P-Phrases"].HasKey(k) 
-		{
-			
 			return str strCompoundAssembled.=": " DataArr["P-Phrases"][k]
-		}
 		else if DataArr["H-Phrases"].HasKey(k) 
-		{
 			return str strCompoundAssembled.=": " DataArr["H-Phrases"][k]
-		}
 		else if DataArr["Physical properties"].HasKey(k) 
-		{
 			return str strCompoundAssembled.=": " DataArr["Physical properties"][k]
-		}
 		else if DataArr["Environmental properties"].HasKey(k) 
-		{
 			return str strCompoundAssembled.=": " DataArr["Environmental properties"][k]
-		}
 		else if DataArr["Supplemental label elements/information on certain substances and mixtures"].HasKey(k) 
-		{
 			return str strCompoundAssembled.=": " DataArr["Supplemental label elements/information on certain substances and mixtures"][k]
-			
-		}
 		; 2nd-level compound creation
 		strCompoundAssembled:=k 
 		CompoundStatementArr:=StrSplit(k,"+")
@@ -806,11 +611,9 @@ fReadINI(INI_File,bIsVar=0) ; return 2D-array from INI-file
 	else ; convert string
 	{
 		Lines:=StrSplit(bIsVar,"`n")
-            ; Arr:=[]
 		bIsInSection:=false
 		for k,v in lines
 		{
-			
 			If SubStr(v,1,1)="[" && SubStr(v,StrLen(v),1)="]"
 			{
                     SectionHeader:=SubStr(v,2)
