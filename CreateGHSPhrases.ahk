@@ -19,7 +19,7 @@ CrtDate:=SubStr(CrtDate,7,  2) "." SubStr(CrtDate,5,2) "." SubStr(CrtDate,1,4)
 ModDate:=SubStr(ModDate,7,  2) "." SubStr(ModDate,5,2) "." SubStr(ModDate,1,4)
 global script := {   base         : script
                     ,name         : regexreplace(A_ScriptName, "\.\w+")
-                    ,version      : "2.7.1"
+                    ,version      : "2.8.1"
                     ,author       : "Gewerd Strauss"
 					,authorlink   : "https://github.com/Gewerd-Strauss"
                     ,email        : ""
@@ -67,6 +67,7 @@ return
 ;{#[Hotkeys Section]
 !0::
 Numpad0::
+SendInput, {AltUp}
 aSel:=StrSplit(fClip(),"`n")
 global vNumErr:=1
 str:=""
