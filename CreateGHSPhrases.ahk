@@ -225,7 +225,7 @@ f_ProcessErrors(ErrorArr,DataArr,str)
 		return str strCompoundAssembled
 }
 
-f_CreateTrayMenu(IniObj)
+f_CreateTrayMenu(IniObj:="")
 { ; facilitates creation of the tray menu
 	menu, tray, add,
 	Menu, Misc, add, Open Script-folder, lOpenScriptFolder
