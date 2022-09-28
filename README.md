@@ -142,7 +142,7 @@ will result in the following line:
 All code below is already included into the script as of 13.12.2021.
 
 * fClip.ahk, original by [berban](https://github.com/berban/Clip), used version by [me](https://github.com/Gewerd-Strauss/fClip.ahk).
-* scriptObj.ahk, original by [RaptorX](https://github.com/RaptorX/ScriptObj), used version slightly modified by [me](https://github.com/Gewerd-Strauss/ScriptObj).
+* scriptObj.ahk, original by [RaptorX](https://github.com/RaptorX/ScriptObj), used version heavily modified by [me](https://github.com/Gewerd-Strauss/ScriptObj).
 * f_TrayIconSingleClickCallBack, adopted from [Lexikos](https://www.autohotkey.com/board/topic/26639-tray-menu-show-gui/?p=171954)
 * HasVal, original from [jNizM](https://www.autohotkey.com/boards/viewtopic.php?p=109173&sid=e530e129dcf21e26636fec1865e3ee30#p109173)
 * wolf_II's [ReadINI-function](https://www.autohotkey.com/boards/viewtopic.php?p=256940#p256940)
