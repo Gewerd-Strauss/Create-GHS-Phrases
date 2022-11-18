@@ -91,7 +91,7 @@ However, because the programm cannot distinguish between lowercase and uppercase
 Requires the GHS phrases in specific format. The file can be retrieved either from this directory, or it is automatically downloaded if missing from this [gist](https://gist.github.com/Gewerd-Strauss/66c07fc5616a8336b52e3609cc9f36ef).
 The phrases were retrieved from https://ec.europa.eu/taxation_customs/dds2/SAMANCTA/EN/Safety/HP_EN.htm on 02.12.2021. I do not take responsibility for keeping the gist up-to-date. Neither does the script check for changes. The file can be redownloaded by deleting the ini-file located at `A_ScriptDir\INI-Files\CreateGHSPhrases.ini`, where A_ScriptDir is the location of the Script/Executable.
 
-Also requires the scriptObj-File. Original by [RaptorX](https://github.com/RaptorX/ScriptObj), modified version used in this project by [myself](https://github.com/Gewerd-Strauss/ScriptObj). Should be located at the default library location for autohotkey, that being `%A_MyDocuments%\AutoHotkey\Lib\`. For more info, see the documentation on [#include](https://www.autohotkey.com/docs/commands/_Include.htm)
+Also requires the scriptObj-File. Original by [RaptorX](https://github.com/RaptorX/ScriptObj), modified version used in this project by [myself](https://github.com/Gewerd-Strauss/ScriptObj). Should be located at the default library location for autohotkey, that being `%A_MyDocuments%\AutoHotkey\Lib\`. For more info, see the documentation on [#include](https://www.autohotkey.com/docs/commands/_Include.htm). Note that this is only required when using the non-compiled `.ahk`-version, and **is not required** when using the `.exe`-executable
 
 
 # Executing the program.
